@@ -36,12 +36,13 @@
 // Verify that #including windows.h does not break anything (e.g. because
 // windows.h #defines GetMessage() as a macro).
 #include <windows.h>
+
 #endif
 
 #include <google/protobuf/test_util.h>
 
 namespace google {
-namespace protobuf {
+    namespace protobuf {
 
-}  // namespace protobuf
+    }  // namespace protobuf
 }  // namespace google

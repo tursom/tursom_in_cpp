@@ -43,48 +43,49 @@
 #include <google/protobuf/compiler/java/java_options.h>
 
 namespace google {
-namespace protobuf {
-class FileDescriptor;  // descriptor.h
-namespace compiler {
-class GeneratorContext;  // code_generator.h
-namespace java {
-class ClassNameResolver;  // name_resolver.h
-}
-}  // namespace compiler
-namespace io {
-class Printer;  // printer.h
-}
-}  // namespace protobuf
+    namespace protobuf {
+        class FileDescriptor;  // descriptor.h
+        namespace compiler {
+            class GeneratorContext;  // code_generator.h
+            namespace java {
+                class ClassNameResolver;  // name_resolver.h
+            }
+        }  // namespace compiler
+        namespace io {
+            class Printer;  // printer.h
+        }
+    }  // namespace protobuf
 }  // namespace google
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
 // A generator that generates code that are shared between immutable API
 // and mutable API. Currently only descriptors are shared.
-class SharedCodeGenerator {
- public:
-  SharedCodeGenerator(const FileDescriptor* file, const Options& options);
-  ~SharedCodeGenerator();
+                class SharedCodeGenerator {
+                public:
+                    SharedCodeGenerator(const FileDescriptor *file, const Options &options);
 
-  void Generate(GeneratorContext* generator_context,
-                std::vector<std::string>* file_list,
-                std::vector<std::string>* annotation_file_list);
+                    ~SharedCodeGenerator();
 
-  void GenerateDescriptors(io::Printer* printer);
+                    void Generate(GeneratorContext *generator_context,
+                                  std::vector<std::string> *file_list,
+                                  std::vector<std::string> *annotation_file_list);
 
- private:
-  std::unique_ptr<ClassNameResolver> name_resolver_;
-  const FileDescriptor* file_;
-  const Options options_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(SharedCodeGenerator);
-};
+                    void GenerateDescriptors(io::Printer *printer);
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                private:
+                    std::unique_ptr<ClassNameResolver> name_resolver_;
+                    const FileDescriptor *file_;
+                    const Options options_;
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(SharedCodeGenerator);
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_SHARED_CODE_GENERATOR_H__

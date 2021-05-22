@@ -42,77 +42,93 @@
 // emulates google3/base/logging.h
 
 namespace google {
-namespace protobuf {
+    namespace protobuf {
 
-enum LogLevel {
-  LOGLEVEL_INFO,     // Informational.  This is never actually used by
-                     // libprotobuf.
-  LOGLEVEL_WARNING,  // Warns about issues that, although not technically a
-                     // problem now, could cause problems in the future.  For
-                     // example, a // warning will be printed when parsing a
-                     // message that is near the message size limit.
-  LOGLEVEL_ERROR,    // An error occurred which should never happen during
-                     // normal use.
-  LOGLEVEL_FATAL,    // An error occurred from which the library cannot
-                     // recover.  This usually indicates a programming error
-                     // in the code which calls the library, especially when
-                     // compiled in debug mode.
+        enum LogLevel {
+            LOGLEVEL_INFO,     // Informational.  This is never actually used by
+            // libprotobuf.
+            LOGLEVEL_WARNING,  // Warns about issues that, although not technically a
+            // problem now, could cause problems in the future.  For
+            // example, a // warning will be printed when parsing a
+            // message that is near the message size limit.
+            LOGLEVEL_ERROR,    // An error occurred which should never happen during
+            // normal use.
+            LOGLEVEL_FATAL,    // An error occurred from which the library cannot
+            // recover.  This usually indicates a programming error
+            // in the code which calls the library, especially when
+            // compiled in debug mode.
 
 #ifdef NDEBUG
-  LOGLEVEL_DFATAL = LOGLEVEL_ERROR
+            LOGLEVEL_DFATAL = LOGLEVEL_ERROR
 #else
-  LOGLEVEL_DFATAL = LOGLEVEL_FATAL
+            LOGLEVEL_DFATAL = LOGLEVEL_FATAL
 #endif
-};
+        };
 
-class uint128;
-namespace internal {
+        class uint128;
+        namespace internal {
 
-class LogFinisher;
+            class LogFinisher;
 
-class PROTOBUF_EXPORT LogMessage {
- public:
-  LogMessage(LogLevel level, const char* filename, int line);
-  ~LogMessage();
+            class PROTOBUF_EXPORT LogMessage {
+            public:
+                LogMessage(LogLevel level, const char *filename, int line);
 
-  LogMessage& operator<<(const std::string& value);
-  LogMessage& operator<<(const char* value);
-  LogMessage& operator<<(char value);
-  LogMessage& operator<<(int value);
-  LogMessage& operator<<(uint value);
-  LogMessage& operator<<(long value);
-  LogMessage& operator<<(unsigned long value);
-  LogMessage& operator<<(long long value);
-  LogMessage& operator<<(unsigned long long value);
-  LogMessage& operator<<(double value);
-  LogMessage& operator<<(void* value);
-  LogMessage& operator<<(const StringPiece& value);
-  LogMessage& operator<<(const util::Status& status);
-  LogMessage& operator<<(const uint128& value);
+                ~LogMessage();
 
- private:
-  friend class LogFinisher;
-  void Finish();
+                LogMessage &operator<<(const std::string &value);
 
-  LogLevel level_;
-  const char* filename_;
-  int line_;
-  std::string message_;
-};
+                LogMessage &operator<<(const char *value);
+
+                LogMessage &operator<<(char value);
+
+                LogMessage &operator<<(int value);
+
+                LogMessage &operator<<(uint value);
+
+                LogMessage &operator<<(long value);
+
+                LogMessage &operator<<(unsigned long value);
+
+                LogMessage &operator<<(long long value);
+
+                LogMessage &operator<<(unsigned long long value);
+
+                LogMessage &operator<<(double value);
+
+                LogMessage &operator<<(void *value);
+
+                LogMessage &operator<<(const StringPiece &value);
+
+                LogMessage &operator<<(const util::Status &status);
+
+                LogMessage &operator<<(const uint128 &value);
+
+            private:
+                friend class LogFinisher;
+
+                void Finish();
+
+                LogLevel level_;
+                const char *filename_;
+                int line_;
+                std::string message_;
+            };
 
 // Used to make the entire "LOG(BLAH) << etc." expression have a void return
 // type and print a newline after each message.
-class PROTOBUF_EXPORT LogFinisher {
- public:
-  void operator=(LogMessage& other);
-};
+            class PROTOBUF_EXPORT LogFinisher {
+            public:
+                void operator=(LogMessage &other);
+            };
 
-template<typename T>
-bool IsOk(T status) { return status.ok(); }
-template<>
-inline bool IsOk(bool status) { return status; }
+            template<typename T>
+            bool IsOk(T status) { return status.ok(); }
 
-}  // namespace internal
+            template<>
+            inline bool IsOk(bool status) { return status; }
+
+        }  // namespace internal
 
 // Undef everything in case we're being mixed with some other Google library
 // which already defined them itself.  Presumably all Google libraries will
@@ -158,16 +174,16 @@ inline bool IsOk(bool status) { return status; }
 #define GOOGLE_CHECK_GT(A, B) GOOGLE_CHECK((A) >  (B))
 #define GOOGLE_CHECK_GE(A, B) GOOGLE_CHECK((A) >= (B))
 
-namespace internal {
-template<typename T>
-T* CheckNotNull(const char* /* file */, int /* line */,
-                const char* name, T* val) {
-  if (val == nullptr) {
-    GOOGLE_LOG(FATAL) << name;
-  }
-  return val;
-}
-}  // namespace internal
+        namespace internal {
+            template<typename T>
+            T *CheckNotNull(const char * /* file */, int /* line */,
+                            const char *name, T *val) {
+                if (val == nullptr) {
+                    GOOGLE_LOG(FATAL) << name;
+                }
+                return val;
+            }
+        }  // namespace internal
 #define GOOGLE_CHECK_NOTNULL(A)               \
   ::google::protobuf::internal::CheckNotNull( \
       __FILE__, __LINE__, "'" #A "' must not be nullptr", (A))
@@ -200,8 +216,8 @@ T* CheckNotNull(const char* /* file */, int /* line */,
 
 #endif  // !NDEBUG
 
-typedef void LogHandler(LogLevel level, const char* filename, int line,
-                        const std::string& message);
+        typedef void LogHandler(LogLevel level, const char *filename, int line,
+                                const std::string &message);
 
 // The protobuf library sometimes writes warning and error messages to
 // stderr.  These messages are primarily useful for developers, but may
@@ -216,7 +232,7 @@ typedef void LogHandler(LogLevel level, const char* filename, int line,
 // have some code that tends to trigger them frequently and you know
 // the warnings are not important to you), use the LogSilencer class
 // below.
-PROTOBUF_EXPORT LogHandler* SetLogHandler(LogHandler* new_func);
+        PROTOBUF_EXPORT LogHandler *SetLogHandler(LogHandler *new_func);
 
 // Create a LogSilencer if you want to temporarily suppress all log
 // messages.  As long as any LogSilencer objects exist, non-fatal
@@ -225,13 +241,14 @@ PROTOBUF_EXPORT LogHandler* SetLogHandler(LogHandler* new_func);
 // accidentally suppress log messages occurring in another thread, but
 // since messages are generally for debugging purposes only, this isn't
 // a big deal.  If you want to intercept log messages, use SetLogHandler().
-class PROTOBUF_EXPORT LogSilencer {
- public:
-  LogSilencer();
-  ~LogSilencer();
-};
+        class PROTOBUF_EXPORT LogSilencer {
+        public:
+            LogSilencer();
 
-}  // namespace protobuf
+            ~LogSilencer();
+        };
+
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

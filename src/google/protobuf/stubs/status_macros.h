@@ -38,8 +38,8 @@
 #include <google/protobuf/stubs/statusor.h>
 
 namespace google {
-namespace protobuf {
-namespace util {
+    namespace protobuf {
+        namespace util {
 
 // Run a command that returns a util::Status.  If the called code returns an
 // error status, return that status up out of this method too.
@@ -57,13 +57,13 @@ namespace util {
 #define STATUS_MACROS_CONCAT_NAME_INNER(x, y) x##y
 #define STATUS_MACROS_CONCAT_NAME(x, y) STATUS_MACROS_CONCAT_NAME_INNER(x, y)
 
-template<typename T>
-Status DoAssignOrReturn(T& lhs, StatusOr<T> result) {
-  if (result.ok()) {
-    lhs = result.value();
-  }
-  return result.status();
-}
+            template<typename T>
+            Status DoAssignOrReturn(T &lhs, StatusOr <T> result) {
+                if (result.ok()) {
+                    lhs = result.value();
+                }
+                return result.status();
+            }
 
 #define ASSIGN_OR_RETURN_IMPL(status, lhs, rexpr) \
   Status status = DoAssignOrReturn(lhs, (rexpr)); \
@@ -82,8 +82,8 @@ Status DoAssignOrReturn(T& lhs, StatusOr<T> result) {
   ASSIGN_OR_RETURN_IMPL( \
       STATUS_MACROS_CONCAT_NAME(_status_or_value, __COUNTER__), lhs, rexpr);
 
-}  // namespace util
-}  // namespace protobuf
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_STUBS_STATUS_H_

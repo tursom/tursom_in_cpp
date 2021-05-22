@@ -43,54 +43,55 @@
 #include <google/protobuf/util/type_resolver.h>
 
 namespace google {
-namespace protobuf {
-namespace util {
-namespace converter {
-namespace testing {
+    namespace protobuf {
+        namespace util {
+            namespace converter {
+                namespace testing {
 
-enum TypeInfoSource {
-  USE_TYPE_RESOLVER,
-};
+                    enum TypeInfoSource {
+                        USE_TYPE_RESOLVER,
+                    };
 
 // In the unit-tests we want to test two scenarios: one with type info from
 // ServiceTypeInfo, the other with type info from TypeResolver. This class
 // wraps the detail of where the type info is from and provides the same
 // interface so the same unit-test code can test both scenarios.
-class TypeInfoTestHelper {
- public:
-  explicit TypeInfoTestHelper(TypeInfoSource type) : type_(type) {}
+                    class TypeInfoTestHelper {
+                    public:
+                        explicit TypeInfoTestHelper(TypeInfoSource type) : type_(type) {}
 
-  // Creates a TypeInfo object for the given set of descriptors.
-  void ResetTypeInfo(const std::vector<const Descriptor*>& descriptors);
+                        // Creates a TypeInfo object for the given set of descriptors.
+                        void ResetTypeInfo(const std::vector<const Descriptor *> &descriptors);
 
-  // Convenient overloads.
-  void ResetTypeInfo(const Descriptor* descriptor);
-  void ResetTypeInfo(const Descriptor* descriptor1,
-                     const Descriptor* descriptor2);
+                        // Convenient overloads.
+                        void ResetTypeInfo(const Descriptor *descriptor);
 
-  // Returns the TypeInfo created after ResetTypeInfo.
-  TypeInfo* GetTypeInfo();
+                        void ResetTypeInfo(const Descriptor *descriptor1,
+                                           const Descriptor *descriptor2);
 
-  ProtoStreamObjectSource* NewProtoSource(
-      io::CodedInputStream* coded_input, const std::string& type_url,
-      ProtoStreamObjectSource::RenderOptions render_options = {});
+                        // Returns the TypeInfo created after ResetTypeInfo.
+                        TypeInfo *GetTypeInfo();
 
-  ProtoStreamObjectWriter* NewProtoWriter(
-      const std::string& type_url, strings::ByteSink* output,
-      ErrorListener* listener, const ProtoStreamObjectWriter::Options& options);
+                        ProtoStreamObjectSource *NewProtoSource(
+                                io::CodedInputStream *coded_input, const std::string &type_url,
+                                ProtoStreamObjectSource::RenderOptions render_options = {});
 
-  DefaultValueObjectWriter* NewDefaultValueWriter(const std::string& type_url,
-                                                  ObjectWriter* writer);
+                        ProtoStreamObjectWriter *NewProtoWriter(
+                                const std::string &type_url, strings::ByteSink *output,
+                                ErrorListener *listener, const ProtoStreamObjectWriter::Options &options);
 
- private:
-  TypeInfoSource type_;
-  std::unique_ptr<TypeInfo> typeinfo_;
-  std::unique_ptr<TypeResolver> type_resolver_;
-};
-}  // namespace testing
-}  // namespace converter
-}  // namespace util
-}  // namespace protobuf
+                        DefaultValueObjectWriter *NewDefaultValueWriter(const std::string &type_url,
+                                                                        ObjectWriter *writer);
+
+                    private:
+                        TypeInfoSource type_;
+                        std::unique_ptr<TypeInfo> typeinfo_;
+                        std::unique_ptr<TypeResolver> type_resolver_;
+                    };
+                }  // namespace testing
+            }  // namespace converter
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_UTIL_CONVERTER_TYPE_INFO_TEST_HELPER_H__

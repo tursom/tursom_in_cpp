@@ -37,17 +37,18 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-namespace protobuf {
-namespace internal {
+    namespace protobuf {
+        namespace internal {
 
-using once_flag = std::once_flag;
-template <typename... Args>
-void call_once(Args&&... args ) {
-  std::call_once(std::forward<Args>(args)...);
-}
+            using once_flag = std::once_flag;
 
-}  // namespace internal
-}  // namespace protobuf
+            template<typename... Args>
+            void call_once(Args &&... args) {
+                std::call_once(std::forward<Args>(args)...);
+            }
+
+        }  // namespace internal
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

@@ -40,120 +40,164 @@
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
-class Context;            // context.h
-class ClassNameResolver;  // name_resolver.h
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
+                class Context;            // context.h
+                class ClassNameResolver;  // name_resolver.h
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
-class ImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
- public:
-  explicit ImmutableEnumFieldGenerator(const FieldDescriptor* descriptor,
-                                       int messageBitIndex, int builderBitIndex,
-                                       Context* context);
-  ~ImmutableEnumFieldGenerator();
+                class ImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
+                public:
+                    explicit ImmutableEnumFieldGenerator(const FieldDescriptor *descriptor,
+                                                         int messageBitIndex, int builderBitIndex,
+                                                         Context *context);
 
-  // implements ImmutableFieldGenerator
-  // ---------------------------------------
-  int GetNumBitsForMessage() const;
-  int GetNumBitsForBuilder() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
-  void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateParsingDoneCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
-  void GenerateFieldBuilderInitializationCode(io::Printer* printer) const;
-  void GenerateEqualsCode(io::Printer* printer) const;
-  void GenerateHashCode(io::Printer* printer) const;
-  void GenerateKotlinDslMembers(io::Printer* printer) const;
+                    ~ImmutableEnumFieldGenerator();
 
-  std::string GetBoxedType() const;
+                    // implements ImmutableFieldGenerator
+                    // ---------------------------------------
+                    int GetNumBitsForMessage() const;
 
- protected:
-  const FieldDescriptor* descriptor_;
-  std::map<std::string, std::string> variables_;
-  ClassNameResolver* name_resolver_;
+                    int GetNumBitsForBuilder() const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumFieldGenerator);
-};
+                    void GenerateInterfaceMembers(io::Printer *printer) const;
 
-class ImmutableEnumOneofFieldGenerator : public ImmutableEnumFieldGenerator {
- public:
-  ImmutableEnumOneofFieldGenerator(const FieldDescriptor* descriptor,
-                                   int messageBitIndex, int builderBitIndex,
-                                   Context* context);
-  ~ImmutableEnumOneofFieldGenerator();
+                    void GenerateMembers(io::Printer *printer) const;
 
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
-  void GenerateEqualsCode(io::Printer* printer) const;
-  void GenerateHashCode(io::Printer* printer) const;
+                    void GenerateBuilderMembers(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumOneofFieldGenerator);
-};
+                    void GenerateInitializationCode(io::Printer *printer) const;
 
-class RepeatedImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
- public:
-  explicit RepeatedImmutableEnumFieldGenerator(
-      const FieldDescriptor* descriptor, int messageBitIndex,
-      int builderBitIndex, Context* context);
-  ~RepeatedImmutableEnumFieldGenerator();
+                    void GenerateBuilderClearCode(io::Printer *printer) const;
 
-  // implements ImmutableFieldGenerator ---------------------------------------
-  int GetNumBitsForMessage() const;
-  int GetNumBitsForBuilder() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
-  void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateParsingCodeFromPacked(io::Printer* printer) const;
-  void GenerateParsingDoneCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
-  void GenerateFieldBuilderInitializationCode(io::Printer* printer) const;
-  void GenerateEqualsCode(io::Printer* printer) const;
-  void GenerateHashCode(io::Printer* printer) const;
-  void GenerateKotlinDslMembers(io::Printer* printer) const;
+                    void GenerateMergingCode(io::Printer *printer) const;
 
-  std::string GetBoxedType() const;
+                    void GenerateBuildingCode(io::Printer *printer) const;
 
- private:
-  const FieldDescriptor* descriptor_;
-  std::map<std::string, std::string> variables_;
-  ClassNameResolver* name_resolver_;
+                    void GenerateParsingCode(io::Printer *printer) const;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableEnumFieldGenerator);
-};
+                    void GenerateParsingDoneCode(io::Printer *printer) const;
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateSerializationCode(io::Printer *printer) const;
+
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
+
+                    void GenerateFieldBuilderInitializationCode(io::Printer *printer) const;
+
+                    void GenerateEqualsCode(io::Printer *printer) const;
+
+                    void GenerateHashCode(io::Printer *printer) const;
+
+                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+
+                    std::string GetBoxedType() const;
+
+                protected:
+                    const FieldDescriptor *descriptor_;
+                    std::map<std::string, std::string> variables_;
+                    ClassNameResolver *name_resolver_;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumFieldGenerator);
+                };
+
+                class ImmutableEnumOneofFieldGenerator : public ImmutableEnumFieldGenerator {
+                public:
+                    ImmutableEnumOneofFieldGenerator(const FieldDescriptor *descriptor,
+                                                     int messageBitIndex, int builderBitIndex,
+                                                     Context *context);
+
+                    ~ImmutableEnumOneofFieldGenerator();
+
+                    void GenerateMembers(io::Printer *printer) const;
+
+                    void GenerateBuilderMembers(io::Printer *printer) const;
+
+                    void GenerateMergingCode(io::Printer *printer) const;
+
+                    void GenerateBuildingCode(io::Printer *printer) const;
+
+                    void GenerateParsingCode(io::Printer *printer) const;
+
+                    void GenerateSerializationCode(io::Printer *printer) const;
+
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
+
+                    void GenerateEqualsCode(io::Printer *printer) const;
+
+                    void GenerateHashCode(io::Printer *printer) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableEnumOneofFieldGenerator);
+                };
+
+                class RepeatedImmutableEnumFieldGenerator : public ImmutableFieldGenerator {
+                public:
+                    explicit RepeatedImmutableEnumFieldGenerator(
+                            const FieldDescriptor *descriptor, int messageBitIndex,
+                            int builderBitIndex, Context *context);
+
+                    ~RepeatedImmutableEnumFieldGenerator();
+
+                    // implements ImmutableFieldGenerator ---------------------------------------
+                    int GetNumBitsForMessage() const;
+
+                    int GetNumBitsForBuilder() const;
+
+                    void GenerateInterfaceMembers(io::Printer *printer) const;
+
+                    void GenerateMembers(io::Printer *printer) const;
+
+                    void GenerateBuilderMembers(io::Printer *printer) const;
+
+                    void GenerateInitializationCode(io::Printer *printer) const;
+
+                    void GenerateBuilderClearCode(io::Printer *printer) const;
+
+                    void GenerateMergingCode(io::Printer *printer) const;
+
+                    void GenerateBuildingCode(io::Printer *printer) const;
+
+                    void GenerateParsingCode(io::Printer *printer) const;
+
+                    void GenerateParsingCodeFromPacked(io::Printer *printer) const;
+
+                    void GenerateParsingDoneCode(io::Printer *printer) const;
+
+                    void GenerateSerializationCode(io::Printer *printer) const;
+
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
+
+                    void GenerateFieldBuilderInitializationCode(io::Printer *printer) const;
+
+                    void GenerateEqualsCode(io::Printer *printer) const;
+
+                    void GenerateHashCode(io::Printer *printer) const;
+
+                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+
+                    std::string GetBoxedType() const;
+
+                private:
+                    const FieldDescriptor *descriptor_;
+                    std::map<std::string, std::string> variables_;
+                    ClassNameResolver *name_resolver_;
+
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableEnumFieldGenerator);
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_FIELD_H__

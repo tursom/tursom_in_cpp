@@ -44,9 +44,9 @@
 // clang-format on
 
 namespace google {
-namespace protobuf {
-namespace util {
-namespace converter {
+    namespace protobuf {
+        namespace util {
+            namespace converter {
 
 
 // An ObjectWriter implementation that outputs JSON. This ObjectWriter
@@ -88,189 +88,205 @@ namespace converter {
 // uint64 would lose precision if rendered as numbers.
 //
 // JsonObjectWriter is thread-unsafe.
-class PROTOBUF_EXPORT JsonObjectWriter : public StructuredObjectWriter {
- public:
-  JsonObjectWriter(StringPiece indent_string, io::CodedOutputStream* out)
-      : element_(new Element(/*parent=*/nullptr, /*is_json_object=*/false)),
-        stream_(out),
-        sink_(out),
-        indent_string_(indent_string),
-        indent_char_('\0'),
-        indent_count_(0),
-        use_websafe_base64_for_bytes_(false) {
-    // See if we have a trivial sequence of indent characters.
-    if (!indent_string.empty()) {
-      indent_char_ = indent_string[0];
-      indent_count_ = indent_string.length();
-      for (int i = 1; i < indent_string.length(); i++) {
-        if (indent_char_ != indent_string_[i]) {
-          indent_char_ = '\0';
-          indent_count_ = 0;
-          break;
-        }
-      }
-    }
-  }
-  virtual ~JsonObjectWriter();
+                class PROTOBUF_EXPORT JsonObjectWriter : public StructuredObjectWriter {
+                public:
+                    JsonObjectWriter(StringPiece indent_string, io::CodedOutputStream *out)
+                            : element_(new Element(/*parent=*/nullptr, /*is_json_object=*/false)),
+                              stream_(out),
+                              sink_(out),
+                              indent_string_(indent_string),
+                              indent_char_('\0'),
+                              indent_count_(0),
+                              use_websafe_base64_for_bytes_(false) {
+                        // See if we have a trivial sequence of indent characters.
+                        if (!indent_string.empty()) {
+                            indent_char_ = indent_string[0];
+                            indent_count_ = indent_string.length();
+                            for (int i = 1; i < indent_string.length(); i++) {
+                                if (indent_char_ != indent_string_[i]) {
+                                    indent_char_ = '\0';
+                                    indent_count_ = 0;
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
-  // ObjectWriter methods.
-  JsonObjectWriter* StartObject(StringPiece name) override;
-  JsonObjectWriter* EndObject() override;
-  JsonObjectWriter* StartList(StringPiece name) override;
-  JsonObjectWriter* EndList() override;
-  JsonObjectWriter* RenderBool(StringPiece name, bool value) override;
-  JsonObjectWriter* RenderInt32(StringPiece name, int32_t value) override;
-  JsonObjectWriter* RenderUint32(StringPiece name,
-                                 uint32_t value) override;
-  JsonObjectWriter* RenderInt64(StringPiece name, int64_t value) override;
-  JsonObjectWriter* RenderUint64(StringPiece name,
-                                 uint64_t value) override;
-  JsonObjectWriter* RenderDouble(StringPiece name, double value) override;
-  JsonObjectWriter* RenderFloat(StringPiece name, float value) override;
-  JsonObjectWriter* RenderString(StringPiece name,
-                                 StringPiece value) override;
-  JsonObjectWriter* RenderBytes(StringPiece name, StringPiece value) override;
-  JsonObjectWriter* RenderNull(StringPiece name) override;
-  virtual JsonObjectWriter* RenderNullAsEmpty(StringPiece name);
+                    virtual ~JsonObjectWriter();
 
-  void set_use_websafe_base64_for_bytes(bool value) {
-    use_websafe_base64_for_bytes_ = value;
-  }
+                    // ObjectWriter methods.
+                    JsonObjectWriter *StartObject(StringPiece name) override;
 
- protected:
-  class PROTOBUF_EXPORT Element : public BaseElement {
-   public:
-    Element(Element* parent, bool is_json_object)
-        : BaseElement(parent),
-          is_first_(true),
-          is_json_object_(is_json_object) {}
+                    JsonObjectWriter *EndObject() override;
 
-    // Called before each field of the Element is to be processed.
-    // Returns true if this is the first call (processing the first field).
-    bool is_first() {
-      if (is_first_) {
-        is_first_ = false;
-        return true;
-      }
-      return false;
-    }
+                    JsonObjectWriter *StartList(StringPiece name) override;
 
-    // Whether we are currently rendering inside a JSON object (i.e., between
-    // StartObject() and EndObject()).
-    bool is_json_object() const { return is_json_object_; }
+                    JsonObjectWriter *EndList() override;
 
-   private:
-    bool is_first_;
-    bool is_json_object_;
+                    JsonObjectWriter *RenderBool(StringPiece name, bool value) override;
 
-    GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(Element);
-  };
+                    JsonObjectWriter *RenderInt32(StringPiece name, int32_t value) override;
 
-  Element* element() override { return element_.get(); }
+                    JsonObjectWriter *RenderUint32(StringPiece name,
+                                                   uint32_t value) override;
 
- private:
-  class PROTOBUF_EXPORT ByteSinkWrapper : public strings::ByteSink {
-   public:
-    explicit ByteSinkWrapper(io::CodedOutputStream* stream) : stream_(stream) {}
-    ~ByteSinkWrapper() override {}
+                    JsonObjectWriter *RenderInt64(StringPiece name, int64_t value) override;
 
-    // ByteSink methods.
-    void Append(const char* bytes, size_t n) override {
-      stream_->WriteRaw(bytes, n);
-    }
+                    JsonObjectWriter *RenderUint64(StringPiece name,
+                                                   uint64_t value) override;
 
-   private:
-    io::CodedOutputStream* stream_;
+                    JsonObjectWriter *RenderDouble(StringPiece name, double value) override;
 
-    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSinkWrapper);
-  };
+                    JsonObjectWriter *RenderFloat(StringPiece name, float value) override;
 
-  // Renders a simple value as a string. By default all non-string Render
-  // methods convert their argument to a string and call this method. This
-  // method can then be used to render the simple value without escaping it.
-  JsonObjectWriter* RenderSimple(StringPiece name,
-                                 StringPiece value) {
-    WritePrefix(name);
-    WriteRawString(value);
-    return this;
-  }
+                    JsonObjectWriter *RenderString(StringPiece name,
+                                                   StringPiece value) override;
 
-  // Pushes a new JSON array element to the stack.
-  void PushArray() {
-    element_.reset(new Element(element_.release(), /*is_json_object=*/false));
-  }
+                    JsonObjectWriter *RenderBytes(StringPiece name, StringPiece value) override;
 
-  // Pushes a new JSON object element to the stack.
-  void PushObject() {
-    element_.reset(new Element(element_.release(), /*is_json_object=*/true));
-  }
+                    JsonObjectWriter *RenderNull(StringPiece name) override;
 
-  // Pops an element off of the stack and deletes the popped element.
-  void Pop() {
-    bool needs_newline = !element_->is_first();
-    element_.reset(element_->pop<Element>());
-    if (needs_newline) NewLine();
-  }
+                    virtual JsonObjectWriter *RenderNullAsEmpty(StringPiece name);
 
-  // If pretty printing is enabled, this will write a newline to the output,
-  // followed by optional indentation. Otherwise this method is a noop.
-  void NewLine() {
-    if (!indent_string_.empty()) {
-      size_t len = sizeof('\n') + (indent_string_.size() * element()->level());
+                    void set_use_websafe_base64_for_bytes(bool value) {
+                        use_websafe_base64_for_bytes_ = value;
+                    }
 
-      // Take the slow-path if we don't have sufficient characters remaining in
-      // our buffer or we have a non-trivial indent string which would prevent
-      // us from using memset.
-      uint8_t* out = nullptr;
-      if (indent_count_ > 0) {
-        out = stream_->GetDirectBufferForNBytesAndAdvance(len);
-      }
+                protected:
+                    class PROTOBUF_EXPORT Element : public BaseElement {
+                    public:
+                        Element(Element *parent, bool is_json_object)
+                                : BaseElement(parent),
+                                  is_first_(true),
+                                  is_json_object_(is_json_object) {}
 
-      if (out != nullptr) {
-        out[0] = '\n';
-        memset(&out[1], indent_char_, len - 1);
-      } else {
-        // Slow path, no contiguous output buffer available.
-        WriteChar('\n');
-        for (int i = 0; i < element()->level(); i++) {
-          stream_->WriteRaw(indent_string_.c_str(), indent_string_.length());
-        }
-      }
-    }
-  }
+                        // Called before each field of the Element is to be processed.
+                        // Returns true if this is the first call (processing the first field).
+                        bool is_first() {
+                            if (is_first_) {
+                                is_first_ = false;
+                                return true;
+                            }
+                            return false;
+                        }
 
-  // Writes a prefix. This will write out any pretty printing and
-  // commas that are required, followed by the name and a ':' if
-  // the name is not null.
-  void WritePrefix(StringPiece name);
+                        // Whether we are currently rendering inside a JSON object (i.e., between
+                        // StartObject() and EndObject()).
+                        bool is_json_object() const { return is_json_object_; }
 
-  // Writes an individual character to the output.
-  void WriteChar(const char c) { stream_->WriteRaw(&c, sizeof(c)); }
+                    private:
+                        bool is_first_;
+                        bool is_json_object_;
 
-  // Writes a string to the output.
-  void WriteRawString(StringPiece s) {
-    stream_->WriteRaw(s.data(), s.length());
-  }
+                        GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(Element);
+                    };
 
-  std::unique_ptr<Element> element_;
-  io::CodedOutputStream* stream_;
-  ByteSinkWrapper sink_;
-  const std::string indent_string_;
+                    Element *element() override { return element_.get(); }
 
-  // For the common case of indent being a single character repeated.
-  char indent_char_;
-  int indent_count_;
+                private:
+                    class PROTOBUF_EXPORT ByteSinkWrapper : public strings::ByteSink {
+                    public:
+                        explicit ByteSinkWrapper(io::CodedOutputStream *stream) : stream_(stream) {}
 
-  // Whether to use regular or websafe base64 encoding for byte fields. Defaults
-  // to regular base64 encoding.
-  bool use_websafe_base64_for_bytes_;
+                        ~ByteSinkWrapper() override {}
 
-  GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(JsonObjectWriter);
-};
+                        // ByteSink methods.
+                        void Append(const char *bytes, size_t n) override {
+                            stream_->WriteRaw(bytes, n);
+                        }
 
-}  // namespace converter
-}  // namespace util
-}  // namespace protobuf
+                    private:
+                        io::CodedOutputStream *stream_;
+
+                        GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSinkWrapper);
+                    };
+
+                    // Renders a simple value as a string. By default all non-string Render
+                    // methods convert their argument to a string and call this method. This
+                    // method can then be used to render the simple value without escaping it.
+                    JsonObjectWriter *RenderSimple(StringPiece name,
+                                                   StringPiece value) {
+                        WritePrefix(name);
+                        WriteRawString(value);
+                        return this;
+                    }
+
+                    // Pushes a new JSON array element to the stack.
+                    void PushArray() {
+                        element_.reset(new Element(element_.release(), /*is_json_object=*/false));
+                    }
+
+                    // Pushes a new JSON object element to the stack.
+                    void PushObject() {
+                        element_.reset(new Element(element_.release(), /*is_json_object=*/true));
+                    }
+
+                    // Pops an element off of the stack and deletes the popped element.
+                    void Pop() {
+                        bool needs_newline = !element_->is_first();
+                        element_.reset(element_->pop<Element>());
+                        if (needs_newline) NewLine();
+                    }
+
+                    // If pretty printing is enabled, this will write a newline to the output,
+                    // followed by optional indentation. Otherwise this method is a noop.
+                    void NewLine() {
+                        if (!indent_string_.empty()) {
+                            size_t len = sizeof('\n') + (indent_string_.size() * element()->level());
+
+                            // Take the slow-path if we don't have sufficient characters remaining in
+                            // our buffer or we have a non-trivial indent string which would prevent
+                            // us from using memset.
+                            uint8_t *out = nullptr;
+                            if (indent_count_ > 0) {
+                                out = stream_->GetDirectBufferForNBytesAndAdvance(len);
+                            }
+
+                            if (out != nullptr) {
+                                out[0] = '\n';
+                                memset(&out[1], indent_char_, len - 1);
+                            } else {
+                                // Slow path, no contiguous output buffer available.
+                                WriteChar('\n');
+                                for (int i = 0; i < element()->level(); i++) {
+                                    stream_->WriteRaw(indent_string_.c_str(), indent_string_.length());
+                                }
+                            }
+                        }
+                    }
+
+                    // Writes a prefix. This will write out any pretty printing and
+                    // commas that are required, followed by the name and a ':' if
+                    // the name is not null.
+                    void WritePrefix(StringPiece name);
+
+                    // Writes an individual character to the output.
+                    void WriteChar(const char c) { stream_->WriteRaw(&c, sizeof(c)); }
+
+                    // Writes a string to the output.
+                    void WriteRawString(StringPiece s) {
+                        stream_->WriteRaw(s.data(), s.length());
+                    }
+
+                    std::unique_ptr<Element> element_;
+                    io::CodedOutputStream *stream_;
+                    ByteSinkWrapper sink_;
+                    const std::string indent_string_;
+
+                    // For the common case of indent being a single character repeated.
+                    char indent_char_;
+                    int indent_count_;
+
+                    // Whether to use regular or websafe base64 encoding for byte fields. Defaults
+                    // to regular base64 encoding.
+                    bool use_websafe_base64_for_bytes_;
+
+                    GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(JsonObjectWriter);
+                };
+
+            }  // namespace converter
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

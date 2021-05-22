@@ -41,74 +41,87 @@
 #include <gtest/gtest.h>
 
 namespace google {
-namespace protobuf {
-namespace util {
+    namespace protobuf {
+        namespace util {
 
-TEST(DelimitedMessageUtilTest, DelimitedMessages) {
-  std::stringstream stream;
+            TEST(DelimitedMessageUtilTest, DelimitedMessages
+            ) {
+            std::stringstream stream;
+        {
+            protobuf_unittest::TestAllTypes message1;
+            TestUtil::SetAllFields(&message1);
+            EXPECT_TRUE(SerializeDelimitedToOstream(message1, &stream)
+            );
 
-  {
-    protobuf_unittest::TestAllTypes message1;
-    TestUtil::SetAllFields(&message1);
-    EXPECT_TRUE(SerializeDelimitedToOstream(message1, &stream));
+            protobuf_unittest::TestPackedTypes message2;
+            TestUtil::SetPackedFields(&message2);
+            EXPECT_TRUE(SerializeDelimitedToOstream(message2, &stream)
+            );
+        }
+    {
+        bool clean_eof;
+        io::IstreamInputStream zstream(&stream);
 
-    protobuf_unittest::TestPackedTypes message2;
-    TestUtil::SetPackedFields(&message2);
-    EXPECT_TRUE(SerializeDelimitedToOstream(message2, &stream));
-  }
+        protobuf_unittest::TestAllTypes message1;
+        clean_eof = true;
+        EXPECT_TRUE(ParseDelimitedFromZeroCopyStream(&message1,
+                                                     &zstream, &clean_eof)
+        );
+        EXPECT_FALSE(clean_eof);
+        TestUtil::ExpectAllFieldsSet(message1);
 
-  {
-    bool clean_eof;
-    io::IstreamInputStream zstream(&stream);
+        protobuf_unittest::TestPackedTypes message2;
+        clean_eof = true;
+        EXPECT_TRUE(ParseDelimitedFromZeroCopyStream(&message2,
+                                                     &zstream, &clean_eof)
+        );
+        EXPECT_FALSE(clean_eof);
+        TestUtil::ExpectPackedFieldsSet(message2);
 
-    protobuf_unittest::TestAllTypes message1;
-    clean_eof = true;
-    EXPECT_TRUE(ParseDelimitedFromZeroCopyStream(&message1,
-        &zstream, &clean_eof));
-    EXPECT_FALSE(clean_eof);
-    TestUtil::ExpectAllFieldsSet(message1);
-
-    protobuf_unittest::TestPackedTypes message2;
-    clean_eof = true;
-    EXPECT_TRUE(ParseDelimitedFromZeroCopyStream(&message2,
-        &zstream, &clean_eof));
-    EXPECT_FALSE(clean_eof);
-    TestUtil::ExpectPackedFieldsSet(message2);
-
-    clean_eof = false;
-    EXPECT_FALSE(ParseDelimitedFromZeroCopyStream(&message2,
-        &zstream, &clean_eof));
-    EXPECT_TRUE(clean_eof);
-  }
+        clean_eof = false;
+        EXPECT_FALSE(ParseDelimitedFromZeroCopyStream(&message2,
+                                                      &zstream, &clean_eof)
+        );
+        EXPECT_TRUE(clean_eof);
+    }
 }
 
-TEST(DelimitedMessageUtilTest, FailsAtEndOfStream) {
-  std::stringstream full_stream;
-  std::stringstream partial_stream;
+TEST(DelimitedMessageUtilTest, FailsAtEndOfStream
+) {
+std::stringstream full_stream;
+std::stringstream partial_stream;
 
-  {
-    protobuf_unittest::ForeignMessage message;
-    message.set_c(42);
-    message.set_d(24);
-    EXPECT_TRUE(SerializeDelimitedToOstream(message, &full_stream));
+{
+protobuf_unittest::ForeignMessage message;
+message.set_c(42);
+message.set_d(24);
+EXPECT_TRUE(SerializeDelimitedToOstream(message, &full_stream)
+);
 
-    std::string full_output = full_stream.str();
-    ASSERT_GT(full_output.size(), size_t{2});
-    ASSERT_EQ(full_output[0], 4);
+std::string full_output = full_stream.str();
+ASSERT_GT(full_output
+.
 
-    partial_stream << full_output[0] << full_output[1] << full_output[2];
-  }
+size(), size_t{2}
 
-  {
-    bool clean_eof;
-    io::IstreamInputStream zstream(&partial_stream);
+);
+ASSERT_EQ(full_output[0],
+4);
 
-    protobuf_unittest::ForeignMessage message;
-    clean_eof = true;
-    EXPECT_FALSE(ParseDelimitedFromZeroCopyStream(&message,
-        &zstream, &clean_eof));
-    EXPECT_FALSE(clean_eof);
-  }
+partial_stream << full_output[0] << full_output[1] << full_output[2];
+}
+
+{
+bool clean_eof;
+io::IstreamInputStream zstream(&partial_stream);
+
+protobuf_unittest::ForeignMessage message;
+clean_eof = true;
+EXPECT_FALSE(ParseDelimitedFromZeroCopyStream(&message,
+                                              &zstream, &clean_eof)
+);
+EXPECT_FALSE(clean_eof);
+}
 }
 
 }  // namespace util

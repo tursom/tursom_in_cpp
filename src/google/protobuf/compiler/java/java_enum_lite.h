@@ -40,59 +40,60 @@
 #include <google/protobuf/descriptor.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
-class Context;            // context.h
-class ClassNameResolver;  // name_resolver.h
-}  // namespace java
-}  // namespace compiler
-namespace io {
-class Printer;  // printer.h
-}
-}  // namespace protobuf
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
+                class Context;            // context.h
+                class ClassNameResolver;  // name_resolver.h
+            }  // namespace java
+        }  // namespace compiler
+        namespace io {
+            class Printer;  // printer.h
+        }
+    }  // namespace protobuf
 }  // namespace google
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
-class EnumLiteGenerator {
- public:
-  EnumLiteGenerator(const EnumDescriptor* descriptor, bool immutable_api,
-                    Context* context);
-  ~EnumLiteGenerator();
+                class EnumLiteGenerator {
+                public:
+                    EnumLiteGenerator(const EnumDescriptor *descriptor, bool immutable_api,
+                                      Context *context);
 
-  void Generate(io::Printer* printer);
+                    ~EnumLiteGenerator();
 
- private:
-  const EnumDescriptor* descriptor_;
+                    void Generate(io::Printer *printer);
 
-  // The proto language allows multiple enum constants to have the same
-  // numeric value.  Java, however, does not allow multiple enum constants to
-  // be considered equivalent.  We treat the first defined constant for any
-  // given numeric value as "canonical" and the rest as aliases of that
-  // canonical value.
-  std::vector<const EnumValueDescriptor*> canonical_values_;
+                private:
+                    const EnumDescriptor *descriptor_;
 
-  struct Alias {
-    const EnumValueDescriptor* value;
-    const EnumValueDescriptor* canonical_value;
-  };
-  std::vector<Alias> aliases_;
+                    // The proto language allows multiple enum constants to have the same
+                    // numeric value.  Java, however, does not allow multiple enum constants to
+                    // be considered equivalent.  We treat the first defined constant for any
+                    // given numeric value as "canonical" and the rest as aliases of that
+                    // canonical value.
+                    std::vector<const EnumValueDescriptor *> canonical_values_;
 
-  bool immutable_api_;
+                    struct Alias {
+                        const EnumValueDescriptor *value;
+                        const EnumValueDescriptor *canonical_value;
+                    };
+                    std::vector<Alias> aliases_;
 
-  Context* context_;
-  ClassNameResolver* name_resolver_;
+                    bool immutable_api_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumLiteGenerator);
-};
+                    Context *context_;
+                    ClassNameResolver *name_resolver_;
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EnumLiteGenerator);
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_ENUM_LITE_H__

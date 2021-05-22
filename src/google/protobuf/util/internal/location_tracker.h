@@ -38,30 +38,30 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-namespace protobuf {
-namespace util {
-namespace converter {
+    namespace protobuf {
+        namespace util {
+            namespace converter {
 
 // LocationTrackerInterface is an interface for classes that track
 // the location information for the purpose of error reporting.
-class PROTOBUF_EXPORT LocationTrackerInterface {
- public:
-  virtual ~LocationTrackerInterface() {}
+                class PROTOBUF_EXPORT LocationTrackerInterface {
+                public:
+                    virtual ~LocationTrackerInterface() {}
 
-  // Returns the object location as human readable string.
-  virtual std::string ToString() const = 0;
+                    // Returns the object location as human readable string.
+                    virtual std::string ToString() const = 0;
 
- protected:
-  LocationTrackerInterface() {}
+                protected:
+                    LocationTrackerInterface() {}
 
- private:
-  // Please do not add any data members to this class.
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(LocationTrackerInterface);
-};
+                private:
+                    // Please do not add any data members to this class.
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(LocationTrackerInterface);
+                };
 
-}  // namespace converter
-}  // namespace util
-}  // namespace protobuf
+            }  // namespace converter
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

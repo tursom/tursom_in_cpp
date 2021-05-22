@@ -64,141 +64,150 @@
 // ===================================================================
 // emulates google3/base/mutex.h
 namespace google {
-namespace protobuf {
-namespace internal {
+    namespace protobuf {
+        namespace internal {
 
 #define GOOGLE_PROTOBUF_LINKER_INITIALIZED
 
 #ifdef GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP
 
-// This class is a lightweight replacement for std::mutex on Windows platforms.
-// std::mutex does not work on Windows XP SP2 with the latest VC++ libraries,
-// because it utilizes the Concurrency Runtime that is only supported on Windows
-// XP SP3 and above.
-class PROTOBUF_EXPORT CriticalSectionLock {
- public:
-  CriticalSectionLock() { InitializeCriticalSection(&critical_section_); }
-  ~CriticalSectionLock() { DeleteCriticalSection(&critical_section_); }
-  void lock() { EnterCriticalSection(&critical_section_); }
-  void unlock() { LeaveCriticalSection(&critical_section_); }
+            // This class is a lightweight replacement for std::mutex on Windows platforms.
+            // std::mutex does not work on Windows XP SP2 with the latest VC++ libraries,
+            // because it utilizes the Concurrency Runtime that is only supported on Windows
+            // XP SP3 and above.
+            class PROTOBUF_EXPORT CriticalSectionLock {
+             public:
+              CriticalSectionLock() { InitializeCriticalSection(&critical_section_); }
+              ~CriticalSectionLock() { DeleteCriticalSection(&critical_section_); }
+              void lock() { EnterCriticalSection(&critical_section_); }
+              void unlock() { LeaveCriticalSection(&critical_section_); }
 
- private:
-  CRITICAL_SECTION critical_section_;
+             private:
+              CRITICAL_SECTION critical_section_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CriticalSectionLock);
-};
+              GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CriticalSectionLock);
+            };
 
 #endif
 
 // In MSVC std::mutex does not have a constexpr constructor.
 // This wrapper makes the constructor constexpr.
-template <typename T>
-class CallOnceInitializedMutex {
- public:
-  constexpr CallOnceInitializedMutex() : flag_{}, buf_{} {}
-  ~CallOnceInitializedMutex() { get().~T(); }
+            template<typename T>
+            class CallOnceInitializedMutex {
+            public:
+                constexpr CallOnceInitializedMutex() : flag_{}, buf_{} {}
 
-  void lock() { get().lock(); }
-  void unlock() { get().unlock(); }
+                ~CallOnceInitializedMutex() { get().~T(); }
 
- private:
-  T& get() {
-    std::call_once(flag_, [&] { ::new (static_cast<void*>(&buf_)) T(); });
-    return reinterpret_cast<T&>(buf_);
-  }
+                void lock() { get().lock(); }
 
-  std::once_flag flag_;
-  alignas(T) char buf_[sizeof(T)];
-};
+                void unlock() { get().unlock(); }
+
+            private:
+                T &get() {
+                    std::call_once(flag_, [&] { ::new(static_cast<void *>(&buf_)) T(); });
+                    return reinterpret_cast<T &>(buf_);
+                }
+
+                std::once_flag flag_;
+                alignas(T) char buf_[sizeof(T)];
+            };
 
 // Mutex is a natural type to wrap. As both google and other organization have
 // specialized mutexes. gRPC also provides an injection mechanism for custom
 // mutexes.
-class GOOGLE_PROTOBUF_CAPABILITY("mutex") PROTOBUF_EXPORT WrappedMutex {
- public:
-  constexpr WrappedMutex() {}
-  void Lock() GOOGLE_PROTOBUF_ACQUIRE() { mu_.lock(); }
-  void Unlock() GOOGLE_PROTOBUF_RELEASE() { mu_.unlock(); }
-  // Crash if this Mutex is not held exclusively by this thread.
-  // May fail to crash when it should; will never crash when it should not.
-  void AssertHeld() const {}
+            class GOOGLE_PROTOBUF_CAPABILITY("mutex") PROTOBUF_EXPORT WrappedMutex {
+            public:
+                constexpr WrappedMutex() {}
 
- private:
+                void Lock() GOOGLE_PROTOBUF_ACQUIRE() { mu_.lock(); }
+
+                void Unlock() GOOGLE_PROTOBUF_RELEASE() { mu_.unlock(); }
+
+                // Crash if this Mutex is not held exclusively by this thread.
+                // May fail to crash when it should; will never crash when it should not.
+                void AssertHeld() const {}
+
+            private:
 #if defined(GOOGLE_PROTOBUF_SUPPORT_WINDOWS_XP)
-  CallOnceInitializedMutex<CriticalSectionLock> mu_{};
+                CallOnceInitializedMutex<CriticalSectionLock> mu_{};
 #elif defined(_WIN32)
-  CallOnceInitializedMutex<std::mutex> mu_{};
+                CallOnceInitializedMutex<std::mutex> mu_{};
 #else
-  std::mutex mu_{};
+                std::mutex mu_{};
 #endif
-};
+            };
 
-using Mutex = WrappedMutex;
+            using Mutex = WrappedMutex;
 
 // MutexLock(mu) acquires mu when constructed and releases it when destroyed.
-class PROTOBUF_EXPORT MutexLock {
- public:
-  explicit MutexLock(Mutex *mu) : mu_(mu) { this->mu_->Lock(); }
-  ~MutexLock() { this->mu_->Unlock(); }
- private:
-  Mutex *const mu_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MutexLock);
-};
+            class PROTOBUF_EXPORT MutexLock {
+            public:
+                explicit MutexLock(Mutex *mu) : mu_(mu) { this->mu_->Lock(); }
+
+                ~MutexLock() { this->mu_->Unlock(); }
+
+            private:
+                Mutex *const mu_;
+                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MutexLock);
+            };
 
 // TODO(kenton):  Implement these?  Hard to implement portably.
-typedef MutexLock ReaderMutexLock;
-typedef MutexLock WriterMutexLock;
+            typedef MutexLock ReaderMutexLock;
+            typedef MutexLock WriterMutexLock;
 
 // MutexLockMaybe is like MutexLock, but is a no-op when mu is nullptr.
-class PROTOBUF_EXPORT MutexLockMaybe {
- public:
-  explicit MutexLockMaybe(Mutex *mu) :
-    mu_(mu) { if (this->mu_ != nullptr) { this->mu_->Lock(); } }
-  ~MutexLockMaybe() { if (this->mu_ != nullptr) { this->mu_->Unlock(); } }
- private:
-  Mutex *const mu_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MutexLockMaybe);
-};
+            class PROTOBUF_EXPORT MutexLockMaybe {
+            public:
+                explicit MutexLockMaybe(Mutex *mu) :
+                        mu_(mu) { if (this->mu_ != nullptr) { this->mu_->Lock(); }}
+
+                ~MutexLockMaybe() { if (this->mu_ != nullptr) { this->mu_->Unlock(); }}
+
+            private:
+                Mutex *const mu_;
+                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(MutexLockMaybe);
+            };
 
 #if defined(GOOGLE_PROTOBUF_NO_THREADLOCAL)
-template<typename T>
-class ThreadLocalStorage {
- public:
-  ThreadLocalStorage() {
-    pthread_key_create(&key_, &ThreadLocalStorage::Delete);
-  }
-  ~ThreadLocalStorage() {
-    pthread_key_delete(key_);
-  }
-  T* Get() {
-    T* result = static_cast<T*>(pthread_getspecific(key_));
-    if (result == nullptr) {
-      result = new T();
-      pthread_setspecific(key_, result);
-    }
-    return result;
-  }
- private:
-  static void Delete(void* value) {
-    delete static_cast<T*>(value);
-  }
-  pthread_key_t key_;
+            template<typename T>
+            class ThreadLocalStorage {
+             public:
+              ThreadLocalStorage() {
+                pthread_key_create(&key_, &ThreadLocalStorage::Delete);
+              }
+              ~ThreadLocalStorage() {
+                pthread_key_delete(key_);
+              }
+              T* Get() {
+                T* result = static_cast<T*>(pthread_getspecific(key_));
+                if (result == nullptr) {
+                  result = new T();
+                  pthread_setspecific(key_, result);
+                }
+                return result;
+              }
+             private:
+              static void Delete(void* value) {
+                delete static_cast<T*>(value);
+              }
+              pthread_key_t key_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ThreadLocalStorage);
-};
+              GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ThreadLocalStorage);
+            };
 #endif
 
-}  // namespace internal
+        }  // namespace internal
 
 // We made these internal so that they would show up as such in the docs,
 // but we don't want to stick "internal::" in front of them everywhere.
-using internal::Mutex;
-using internal::MutexLock;
-using internal::ReaderMutexLock;
-using internal::WriterMutexLock;
-using internal::MutexLockMaybe;
+        using internal::Mutex;
+        using internal::MutexLock;
+        using internal::ReaderMutexLock;
+        using internal::WriterMutexLock;
+        using internal::MutexLockMaybe;
 
-}  // namespace protobuf
+    }  // namespace protobuf
 }  // namespace google
 
 #undef GOOGLE_PROTOBUF_ACQUIRE

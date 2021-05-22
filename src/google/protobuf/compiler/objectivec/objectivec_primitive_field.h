@@ -36,60 +36,67 @@
 #include <google/protobuf/compiler/objectivec/objectivec_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace objectivec {
+    namespace protobuf {
+        namespace compiler {
+            namespace objectivec {
 
-class PrimitiveFieldGenerator : public SingleFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                class PrimitiveFieldGenerator : public SingleFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
 
- protected:
-  PrimitiveFieldGenerator(const FieldDescriptor* descriptor,
-                          const Options& options);
-  virtual ~PrimitiveFieldGenerator();
+                protected:
+                    PrimitiveFieldGenerator(const FieldDescriptor *descriptor,
+                                            const Options &options);
 
-  PrimitiveFieldGenerator(const PrimitiveFieldGenerator&) = delete;
-  PrimitiveFieldGenerator& operator=(const PrimitiveFieldGenerator&) = delete;
+                    virtual ~PrimitiveFieldGenerator();
 
-  virtual void GenerateFieldStorageDeclaration(io::Printer* printer) const;
+                    PrimitiveFieldGenerator(const PrimitiveFieldGenerator &) = delete;
 
-  virtual int ExtraRuntimeHasBitsNeeded(void) const;
-  virtual void SetExtraRuntimeHasBitsBase(int index_base);
-};
+                    PrimitiveFieldGenerator &operator=(const PrimitiveFieldGenerator &) = delete;
 
-class PrimitiveObjFieldGenerator : public ObjCObjFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                    virtual void GenerateFieldStorageDeclaration(io::Printer *printer) const;
 
- protected:
-  PrimitiveObjFieldGenerator(const FieldDescriptor* descriptor,
-                             const Options& options);
-  virtual ~PrimitiveObjFieldGenerator();
+                    virtual int ExtraRuntimeHasBitsNeeded(void) const;
 
-  PrimitiveObjFieldGenerator(const PrimitiveObjFieldGenerator&) = delete;
-  PrimitiveObjFieldGenerator& operator=(const PrimitiveObjFieldGenerator&) =
-      delete;
-};
+                    virtual void SetExtraRuntimeHasBitsBase(int index_base);
+                };
 
-class RepeatedPrimitiveFieldGenerator : public RepeatedFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                class PrimitiveObjFieldGenerator : public ObjCObjFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
 
- protected:
-  RepeatedPrimitiveFieldGenerator(const FieldDescriptor* descriptor,
-                                  const Options& options);
-  virtual ~RepeatedPrimitiveFieldGenerator();
+                protected:
+                    PrimitiveObjFieldGenerator(const FieldDescriptor *descriptor,
+                                               const Options &options);
 
-  RepeatedPrimitiveFieldGenerator(const RepeatedPrimitiveFieldGenerator&) =
-      delete;
-  RepeatedPrimitiveFieldGenerator& operator=(
-      const RepeatedPrimitiveFieldGenerator&) = delete;
-};
+                    virtual ~PrimitiveObjFieldGenerator();
 
-}  // namespace objectivec
-}  // namespace compiler
-}  // namespace protobuf
+                    PrimitiveObjFieldGenerator(const PrimitiveObjFieldGenerator &) = delete;
+
+                    PrimitiveObjFieldGenerator &operator=(const PrimitiveObjFieldGenerator &) =
+                    delete;
+                };
+
+                class RepeatedPrimitiveFieldGenerator : public RepeatedFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
+
+                protected:
+                    RepeatedPrimitiveFieldGenerator(const FieldDescriptor *descriptor,
+                                                    const Options &options);
+
+                    virtual ~RepeatedPrimitiveFieldGenerator();
+
+                    RepeatedPrimitiveFieldGenerator(const RepeatedPrimitiveFieldGenerator &) =
+                    delete;
+
+                    RepeatedPrimitiveFieldGenerator &operator=(
+                            const RepeatedPrimitiveFieldGenerator &) = delete;
+                };
+
+            }  // namespace objectivec
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_PRIMITIVE_FIELD_H__

@@ -37,56 +37,74 @@
 #include <google/protobuf/compiler/csharp/csharp_field_base.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace csharp {
+    namespace protobuf {
+        namespace compiler {
+            namespace csharp {
 
-class MessageFieldGenerator : public FieldGeneratorBase {
- public:
-  MessageFieldGenerator(const FieldDescriptor* descriptor,
-                        int presenceIndex,
-                        const Options *options);
-  ~MessageFieldGenerator();
+                class MessageFieldGenerator : public FieldGeneratorBase {
+                public:
+                    MessageFieldGenerator(const FieldDescriptor *descriptor,
+                                          int presenceIndex,
+                                          const Options *options);
 
-  MessageFieldGenerator(const MessageFieldGenerator&) = delete;
-  MessageFieldGenerator& operator=(const MessageFieldGenerator&) = delete;
+                    ~MessageFieldGenerator();
 
-  virtual void GenerateCodecCode(io::Printer* printer);
-  virtual void GenerateCloningCode(io::Printer* printer);
-  virtual void GenerateFreezingCode(io::Printer* printer);
-  virtual void GenerateMembers(io::Printer* printer);
-  virtual void GenerateMergingCode(io::Printer* printer);
-  virtual void GenerateParsingCode(io::Printer* printer);
-  virtual void GenerateSerializationCode(io::Printer* printer);
-  virtual void GenerateSerializedSizeCode(io::Printer* printer);
-  virtual void GenerateExtensionCode(io::Printer* printer);
+                    MessageFieldGenerator(const MessageFieldGenerator &) = delete;
 
-  virtual void WriteHash(io::Printer* printer);
-  virtual void WriteEquals(io::Printer* printer);
-  virtual void WriteToString(io::Printer* printer);
-};
+                    MessageFieldGenerator &operator=(const MessageFieldGenerator &) = delete;
 
-class MessageOneofFieldGenerator : public MessageFieldGenerator {
- public:
-  MessageOneofFieldGenerator(const FieldDescriptor* descriptor,
-                             int presenceIndex,
-                             const Options *options);
-  ~MessageOneofFieldGenerator();
+                    virtual void GenerateCodecCode(io::Printer *printer);
 
-  MessageOneofFieldGenerator(const MessageOneofFieldGenerator&) = delete;
-  MessageOneofFieldGenerator& operator=(const MessageOneofFieldGenerator&) =
-      delete;
+                    virtual void GenerateCloningCode(io::Printer *printer);
 
-  virtual void GenerateCloningCode(io::Printer* printer);
-  virtual void GenerateMembers(io::Printer* printer);
-  virtual void GenerateMergingCode(io::Printer* printer);
-  virtual void WriteToString(io::Printer* printer);
-  virtual void GenerateParsingCode(io::Printer* printer);
-};
+                    virtual void GenerateFreezingCode(io::Printer *printer);
 
-}  // namespace csharp
-}  // namespace compiler
-}  // namespace protobuf
+                    virtual void GenerateMembers(io::Printer *printer);
+
+                    virtual void GenerateMergingCode(io::Printer *printer);
+
+                    virtual void GenerateParsingCode(io::Printer *printer);
+
+                    virtual void GenerateSerializationCode(io::Printer *printer);
+
+                    virtual void GenerateSerializedSizeCode(io::Printer *printer);
+
+                    virtual void GenerateExtensionCode(io::Printer *printer);
+
+                    virtual void WriteHash(io::Printer *printer);
+
+                    virtual void WriteEquals(io::Printer *printer);
+
+                    virtual void WriteToString(io::Printer *printer);
+                };
+
+                class MessageOneofFieldGenerator : public MessageFieldGenerator {
+                public:
+                    MessageOneofFieldGenerator(const FieldDescriptor *descriptor,
+                                               int presenceIndex,
+                                               const Options *options);
+
+                    ~MessageOneofFieldGenerator();
+
+                    MessageOneofFieldGenerator(const MessageOneofFieldGenerator &) = delete;
+
+                    MessageOneofFieldGenerator &operator=(const MessageOneofFieldGenerator &) =
+                    delete;
+
+                    virtual void GenerateCloningCode(io::Printer *printer);
+
+                    virtual void GenerateMembers(io::Printer *printer);
+
+                    virtual void GenerateMergingCode(io::Printer *printer);
+
+                    virtual void WriteToString(io::Printer *printer);
+
+                    virtual void GenerateParsingCode(io::Printer *printer);
+                };
+
+            }  // namespace csharp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_MESSAGE_FIELD_H__

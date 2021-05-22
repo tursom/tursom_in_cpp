@@ -41,8 +41,8 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-namespace protobuf {
-namespace strings {
+    namespace protobuf {
+        namespace strings {
 
 // ----------------------------------------------------------------------
 // strings::Substitute()
@@ -84,89 +84,102 @@ namespace strings {
 //   large strings, it may be orders of magnitude faster.
 // ----------------------------------------------------------------------
 
-namespace internal {  // Implementation details.
+            namespace internal {  // Implementation details.
 
-class SubstituteArg {
- public:
-  inline SubstituteArg(const char* value)
-    : text_(value), size_(strlen(text_)) {}
-  inline SubstituteArg(const std::string& value)
-      : text_(value.data()), size_(value.size()) {}
+                class SubstituteArg {
+                public:
+                    inline SubstituteArg(const char *value)
+                            : text_(value), size_(strlen(text_)) {}
 
-  // Indicates that no argument was given.
-  inline explicit SubstituteArg()
-    : text_(nullptr), size_(-1) {}
+                    inline SubstituteArg(const std::string &value)
+                            : text_(value.data()), size_(value.size()) {}
 
-  // Primitives
-  // We don't overload for signed and unsigned char because if people are
-  // explicitly declaring their chars as signed or unsigned then they are
-  // probably actually using them as 8-bit integers and would probably
-  // prefer an integer representation.  But, we don't really know.  So, we
-  // make the caller decide what to do.
-  inline SubstituteArg(char value)
-    : text_(scratch_), size_(1) { scratch_[0] = value; }
-  inline SubstituteArg(short value)
-    : text_(FastInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(unsigned short value)
-    : text_(FastUInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(int value)
-    : text_(FastInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(unsigned int value)
-    : text_(FastUInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(long value)
-    : text_(FastLongToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(unsigned long value)
-    : text_(FastULongToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(long long value)
-    : text_(FastInt64ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(unsigned long long value)
-    : text_(FastUInt64ToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(float value)
-    : text_(FloatToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(double value)
-    : text_(DoubleToBuffer(value, scratch_)), size_(strlen(text_)) {}
-  inline SubstituteArg(bool value)
-    : text_(value ? "true" : "false"), size_(strlen(text_)) {}
+                    // Indicates that no argument was given.
+                    inline explicit SubstituteArg()
+                            : text_(nullptr), size_(-1) {}
 
-  inline const char* data() const { return text_; }
-  inline int size() const { return size_; }
+                    // Primitives
+                    // We don't overload for signed and unsigned char because if people are
+                    // explicitly declaring their chars as signed or unsigned then they are
+                    // probably actually using them as 8-bit integers and would probably
+                    // prefer an integer representation.  But, we don't really know.  So, we
+                    // make the caller decide what to do.
+                    inline SubstituteArg(char value)
+                            : text_(scratch_), size_(1) { scratch_[0] = value; }
 
- private:
-  const char* text_;
-  int size_;
-  char scratch_[kFastToBufferSize];
-};
+                    inline SubstituteArg(short value)
+                            : text_(FastInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
 
-}  // namespace internal
+                    inline SubstituteArg(unsigned short value)
+                            : text_(FastUInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
 
-PROTOBUF_EXPORT std::string Substitute(
-    const char* format,
-    const internal::SubstituteArg& arg0 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg1 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg2 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg3 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg4 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg5 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg6 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg7 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg8 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg9 = internal::SubstituteArg());
+                    inline SubstituteArg(int value)
+                            : text_(FastInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
 
-PROTOBUF_EXPORT void SubstituteAndAppend(
-    std::string* output, const char* format,
-    const internal::SubstituteArg& arg0 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg1 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg2 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg3 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg4 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg5 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg6 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg7 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg8 = internal::SubstituteArg(),
-    const internal::SubstituteArg& arg9 = internal::SubstituteArg());
+                    inline SubstituteArg(unsigned int value)
+                            : text_(FastUInt32ToBuffer(value, scratch_)), size_(strlen(text_)) {}
 
-}  // namespace strings
-}  // namespace protobuf
+                    inline SubstituteArg(long value)
+                            : text_(FastLongToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(unsigned long value)
+                            : text_(FastULongToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(long long value)
+                            : text_(FastInt64ToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(unsigned long long value)
+                            : text_(FastUInt64ToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(float value)
+                            : text_(FloatToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(double value)
+                            : text_(DoubleToBuffer(value, scratch_)), size_(strlen(text_)) {}
+
+                    inline SubstituteArg(bool value)
+                            : text_(value ? "true" : "false"), size_(strlen(text_)) {}
+
+                    inline const char *data() const { return text_; }
+
+                    inline int size() const { return size_; }
+
+                private:
+                    const char *text_;
+                    int size_;
+                    char scratch_[kFastToBufferSize];
+                };
+
+            }  // namespace internal
+
+            PROTOBUF_EXPORT std::string Substitute(
+                    const char *format,
+                    const internal::SubstituteArg &arg0 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg1 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg2 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg3 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg4 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg5 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg6 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg7 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg8 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg9 = internal::SubstituteArg());
+
+            PROTOBUF_EXPORT void SubstituteAndAppend(
+                    std::string *output, const char *format,
+                    const internal::SubstituteArg &arg0 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg1 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg2 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg3 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg4 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg5 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg6 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg7 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg8 = internal::SubstituteArg(),
+                    const internal::SubstituteArg &arg9 = internal::SubstituteArg());
+
+        }  // namespace strings
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

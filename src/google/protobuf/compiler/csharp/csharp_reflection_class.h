@@ -39,37 +39,41 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace csharp {
+    namespace protobuf {
+        namespace compiler {
+            namespace csharp {
 
-class ReflectionClassGenerator : public SourceGeneratorBase {
- public:
-  ReflectionClassGenerator(const FileDescriptor* file, const Options* options);
-  ~ReflectionClassGenerator();
+                class ReflectionClassGenerator : public SourceGeneratorBase {
+                public:
+                    ReflectionClassGenerator(const FileDescriptor *file, const Options *options);
 
-  ReflectionClassGenerator(const ReflectionClassGenerator&) = delete;
-  ReflectionClassGenerator& operator=(const ReflectionClassGenerator&) = delete;
+                    ~ReflectionClassGenerator();
 
-  void Generate(io::Printer* printer);
+                    ReflectionClassGenerator(const ReflectionClassGenerator &) = delete;
 
- private:
-  const FileDescriptor* file_;
+                    ReflectionClassGenerator &operator=(const ReflectionClassGenerator &) = delete;
 
-  std::string namespace_;
-  std::string reflectionClassname_;
-  std::string extensionClassname_;
+                    void Generate(io::Printer *printer);
 
-  void WriteIntroduction(io::Printer* printer);
-  void WriteDescriptor(io::Printer* printer);
-  void WriteGeneratedCodeInfo(const Descriptor* descriptor,
-                              io::Printer* printer,
-                              bool last);
-};
+                private:
+                    const FileDescriptor *file_;
 
-}  // namespace csharp
-}  // namespace compiler
-}  // namespace protobuf
+                    std::string namespace_;
+                    std::string reflectionClassname_;
+                    std::string extensionClassname_;
+
+                    void WriteIntroduction(io::Printer *printer);
+
+                    void WriteDescriptor(io::Printer *printer);
+
+                    void WriteGeneratedCodeInfo(const Descriptor *descriptor,
+                                                io::Printer *printer,
+                                                bool last);
+                };
+
+            }  // namespace csharp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_REFLECTION_CLASS_H__

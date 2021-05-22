@@ -37,46 +37,46 @@
 #include <google/protobuf/testing/googletest.h>
 
 namespace google {
-namespace protobuf {
-namespace TestUtil {
+    namespace protobuf {
+        namespace TestUtil {
 
 // Translate net/proto2/* -> google/protobuf/*
-inline std::string TranslatePathToOpensource(const std::string& google3_path) {
-  const std::string prefix = "net/proto2/";
-  GOOGLE_CHECK(google3_path.find(prefix) == 0) << google3_path;
-  std::string path = google3_path.substr(prefix.size());
+            inline std::string TranslatePathToOpensource(const std::string &google3_path) {
+                const std::string prefix = "net/proto2/";
+                GOOGLE_CHECK(google3_path.find(prefix) == 0) << google3_path;
+                std::string path = google3_path.substr(prefix.size());
 
-  path = StringReplace(path, "internal/", "", false);
-  path = StringReplace(path, "proto/", "", false);
-  path = StringReplace(path, "public/", "", false);
-  return "google/protobuf/" + path;
-}
+                path = StringReplace(path, "internal/", "", false);
+                path = StringReplace(path, "proto/", "", false);
+                path = StringReplace(path, "public/", "", false);
+                return "google/protobuf/" + path;
+            }
 
-inline std::string MaybeTranslatePath(const std::string& google3_path) {
-  std::string path = google3_path;
-  path = TranslatePathToOpensource(path);
-  return path;
-}
+            inline std::string MaybeTranslatePath(const std::string &google3_path) {
+                std::string path = google3_path;
+                path = TranslatePathToOpensource(path);
+                return path;
+            }
 
-inline std::string TestSourceDir() {
-  return google::protobuf::TestSourceDir();
-}
+            inline std::string TestSourceDir() {
+                return google::protobuf::TestSourceDir();
+            }
 
-inline std::string GetTestDataPath(const std::string& google3_path) {
-  return TestSourceDir() + "/" + MaybeTranslatePath(google3_path);
-}
+            inline std::string GetTestDataPath(const std::string &google3_path) {
+                return TestSourceDir() + "/" + MaybeTranslatePath(google3_path);
+            }
 
 // Checks the equality of "message" and serialized proto of type "ProtoType".
 // Do not directly compare two serialized protos.
-template <typename ProtoType>
-bool EqualsToSerialized(const ProtoType& message, const std::string& data) {
-  ProtoType other;
-  other.ParsePartialFromString(data);
-  return util::MessageDifferencer::Equals(message, other);
-}
+            template<typename ProtoType>
+            bool EqualsToSerialized(const ProtoType &message, const std::string &data) {
+                ProtoType other;
+                other.ParsePartialFromString(data);
+                return util::MessageDifferencer::Equals(message, other);
+            }
 
-}  // namespace TestUtil
-}  // namespace protobuf
+        }  // namespace TestUtil
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_TEST_UTIL2_H__

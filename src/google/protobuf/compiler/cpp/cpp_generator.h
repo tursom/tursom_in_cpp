@@ -43,62 +43,63 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace cpp {
+    namespace protobuf {
+        namespace compiler {
+            namespace cpp {
 
 // CodeGenerator implementation which generates a C++ source file and
 // header.  If you create your own protocol compiler binary and you want
 // it to support C++ output, you can do so by registering an instance of this
 // CodeGenerator with the CommandLineInterface in your main() function.
-class PROTOC_EXPORT CppGenerator : public CodeGenerator {
- public:
-  CppGenerator();
-  ~CppGenerator();
+                class PROTOC_EXPORT CppGenerator : public CodeGenerator {
+                public:
+                    CppGenerator();
 
-  enum class Runtime {
-    kGoogle3,     // Use the internal google3 runtime.
-    kOpensource,  // Use the open-source runtime.
+                    ~CppGenerator();
 
-    // Use the open-source runtime with google3 #include paths.  We make these
-    // absolute to avoid ambiguity, so the runtime will be #included like:
-    //   #include "third_party/protobuf/.../google/protobuf/message.h"
-    kOpensourceGoogle3
-  };
+                    enum class Runtime {
+                        kGoogle3,     // Use the internal google3 runtime.
+                        kOpensource,  // Use the open-source runtime.
 
-  void set_opensource_runtime(bool opensource) {
-    opensource_runtime_ = opensource;
-  }
+                        // Use the open-source runtime with google3 #include paths.  We make these
+                        // absolute to avoid ambiguity, so the runtime will be #included like:
+                        //   #include "third_party/protobuf/.../google/protobuf/message.h"
+                        kOpensourceGoogle3
+                    };
 
-  // If set to a non-empty string, generated code will do:
-  //   #include "<BASE>/google/protobuf/message.h"
-  // instead of:
-  //   #include <google/protobuf/message.h>
-  // This has no effect if opensource_runtime = false.
-  void set_runtime_include_base(const std::string& base) {
-    runtime_include_base_ = base;
-  }
+                    void set_opensource_runtime(bool opensource) {
+                        opensource_runtime_ = opensource;
+                    }
 
-  // implements CodeGenerator ----------------------------------------
-  bool Generate(const FileDescriptor* file, const std::string& parameter,
-                GeneratorContext* generator_context,
-                std::string* error) const override;
+                    // If set to a non-empty string, generated code will do:
+                    //   #include "<BASE>/google/protobuf/message.h"
+                    // instead of:
+                    //   #include <google/protobuf/message.h>
+                    // This has no effect if opensource_runtime = false.
+                    void set_runtime_include_base(const std::string &base) {
+                        runtime_include_base_ = base;
+                    }
 
-  uint64_t GetSupportedFeatures() const override {
-    // We don't fully support this yet, but this is needed to unblock the tests,
-    // and we will have full support before the experimental flag is removed.
-    return FEATURE_PROTO3_OPTIONAL;
-  }
+                    // implements CodeGenerator ----------------------------------------
+                    bool Generate(const FileDescriptor *file, const std::string &parameter,
+                                  GeneratorContext *generator_context,
+                                  std::string *error) const override;
 
- private:
-  bool opensource_runtime_ = true;
-  std::string runtime_include_base_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CppGenerator);
-};
+                    uint64_t GetSupportedFeatures() const override {
+                        // We don't fully support this yet, but this is needed to unblock the tests,
+                        // and we will have full support before the experimental flag is removed.
+                        return FEATURE_PROTO3_OPTIONAL;
+                    }
 
-}  // namespace cpp
-}  // namespace compiler
-}  // namespace protobuf
+                private:
+                    bool opensource_runtime_ = true;
+                    std::string runtime_include_base_;
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CppGenerator);
+                };
+
+            }  // namespace cpp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

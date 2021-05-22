@@ -42,50 +42,51 @@
 #include <google/protobuf/compiler/cpp/cpp_options.h>
 
 namespace google {
-namespace protobuf {
-class FieldDescriptor;  // descriptor.h
-namespace io {
-class Printer;  // printer.h
-}
-}  // namespace protobuf
+    namespace protobuf {
+        class FieldDescriptor;  // descriptor.h
+        namespace io {
+            class Printer;  // printer.h
+        }
+    }  // namespace protobuf
 }  // namespace google
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace cpp {
+    namespace protobuf {
+        namespace compiler {
+            namespace cpp {
 
 // Generates code for an extension, which may be within the scope of some
 // message or may be at file scope.  This is much simpler than FieldGenerator
 // since extensions are just simple identifiers with interesting types.
-class ExtensionGenerator {
- public:
-  // See generator.cc for the meaning of dllexport_decl.
-  explicit ExtensionGenerator(const FieldDescriptor* descriptor,
-                              const Options& options);
-  ~ExtensionGenerator();
+                class ExtensionGenerator {
+                public:
+                    // See generator.cc for the meaning of dllexport_decl.
+                    explicit ExtensionGenerator(const FieldDescriptor *descriptor,
+                                                const Options &options);
 
-  // Header stuff.
-  void GenerateDeclaration(io::Printer* printer) const;
+                    ~ExtensionGenerator();
 
-  // Source file stuff.
-  void GenerateDefinition(io::Printer* printer);
+                    // Header stuff.
+                    void GenerateDeclaration(io::Printer *printer) const;
 
-  bool IsScoped() const;
+                    // Source file stuff.
+                    void GenerateDefinition(io::Printer *printer);
 
- private:
-  const FieldDescriptor* descriptor_;
-  std::string type_traits_;
-  Options options_;
+                    bool IsScoped() const;
 
-  std::map<std::string, std::string> variables_;
+                private:
+                    const FieldDescriptor *descriptor_;
+                    std::string type_traits_;
+                    Options options_;
 
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
-};
+                    std::map<std::string, std::string> variables_;
 
-}  // namespace cpp
-}  // namespace compiler
-}  // namespace protobuf
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
+                };
+
+            }  // namespace cpp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_MESSAGE_H__

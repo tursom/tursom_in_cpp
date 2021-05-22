@@ -36,43 +36,48 @@
 #include <google/protobuf/compiler/objectivec/objectivec_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace objectivec {
+    namespace protobuf {
+        namespace compiler {
+            namespace objectivec {
 
-class EnumFieldGenerator : public SingleFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                class EnumFieldGenerator : public SingleFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
 
-  EnumFieldGenerator(const EnumFieldGenerator&) = delete;
-  EnumFieldGenerator& operator=(const EnumFieldGenerator&) = delete;
+                    EnumFieldGenerator(const EnumFieldGenerator &) = delete;
 
- public:
-  virtual void GenerateCFunctionDeclarations(io::Printer* printer) const;
-  virtual void GenerateCFunctionImplementations(io::Printer* printer) const;
-  virtual void DetermineForwardDeclarations(
-      std::set<std::string>* fwd_decls) const;
+                    EnumFieldGenerator &operator=(const EnumFieldGenerator &) = delete;
 
- protected:
-  EnumFieldGenerator(const FieldDescriptor* descriptor, const Options& options);
-  virtual ~EnumFieldGenerator();
-};
+                public:
+                    virtual void GenerateCFunctionDeclarations(io::Printer *printer) const;
 
-class RepeatedEnumFieldGenerator : public RepeatedFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                    virtual void GenerateCFunctionImplementations(io::Printer *printer) const;
 
- public:
-  virtual void FinishInitialization();
+                    virtual void DetermineForwardDeclarations(
+                            std::set<std::string> *fwd_decls) const;
 
- protected:
-  RepeatedEnumFieldGenerator(const FieldDescriptor* descriptor,
-                             const Options& options);
-  virtual ~RepeatedEnumFieldGenerator();
-};
+                protected:
+                    EnumFieldGenerator(const FieldDescriptor *descriptor, const Options &options);
 
-}  // namespace objectivec
-}  // namespace compiler
-}  // namespace protobuf
+                    virtual ~EnumFieldGenerator();
+                };
+
+                class RepeatedEnumFieldGenerator : public RepeatedFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
+
+                public:
+                    virtual void FinishInitialization();
+
+                protected:
+                    RepeatedEnumFieldGenerator(const FieldDescriptor *descriptor,
+                                               const Options &options);
+
+                    virtual ~RepeatedEnumFieldGenerator();
+                };
+
+            }  // namespace objectivec
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ENUM_FIELD_H__

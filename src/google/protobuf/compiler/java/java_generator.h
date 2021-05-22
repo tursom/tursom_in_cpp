@@ -43,32 +43,33 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
 // CodeGenerator implementation which generates Java code.  If you create your
 // own protocol compiler binary and you want it to support Java output, you
 // can do so by registering an instance of this CodeGenerator with the
 // CommandLineInterface in your main() function.
-class PROTOC_EXPORT JavaGenerator : public CodeGenerator {
- public:
-  JavaGenerator();
-  ~JavaGenerator();
+                class PROTOC_EXPORT JavaGenerator : public CodeGenerator {
+                public:
+                    JavaGenerator();
 
-  // implements CodeGenerator ----------------------------------------
-  bool Generate(const FileDescriptor* file, const std::string& parameter,
-                GeneratorContext* context, std::string* error) const override;
+                    ~JavaGenerator();
 
-  uint64_t GetSupportedFeatures() const override;
+                    // implements CodeGenerator ----------------------------------------
+                    bool Generate(const FileDescriptor *file, const std::string &parameter,
+                                  GeneratorContext *context, std::string *error) const override;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(JavaGenerator);
-};
+                    uint64_t GetSupportedFeatures() const override;
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(JavaGenerator);
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

@@ -47,835 +47,835 @@
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
-namespace {
+                namespace {
 
-void SetMessageVariables(const FieldDescriptor* descriptor, int messageBitIndex,
-                         int builderBitIndex, const FieldGeneratorInfo* info,
-                         ClassNameResolver* name_resolver,
-                         std::map<std::string, std::string>* variables) {
-  SetCommonFieldVariables(descriptor, info, variables);
+                    void SetMessageVariables(const FieldDescriptor *descriptor, int messageBitIndex,
+                                             int builderBitIndex, const FieldGeneratorInfo *info,
+                                             ClassNameResolver *name_resolver,
+                                             std::map<std::string, std::string> *variables) {
+                        SetCommonFieldVariables(descriptor, info, variables);
 
-  (*variables)["type"] =
-      name_resolver->GetImmutableClassName(descriptor->message_type());
-  (*variables)["kt_type"] = (*variables)["type"];
-  (*variables)["mutable_type"] =
-      name_resolver->GetMutableClassName(descriptor->message_type());
-  (*variables)["group_or_message"] =
-      (GetType(descriptor) == FieldDescriptor::TYPE_GROUP) ? "Group"
-                                                           : "Message";
-  // TODO(birdo): Add @deprecated javadoc when generating javadoc is supported
-  // by the proto compiler
-  (*variables)["deprecation"] =
-      descriptor->options().deprecated() ? "@java.lang.Deprecated " : "";
-  (*variables)["kt_deprecation"] =
-      descriptor->options().deprecated()
-          ? "@kotlin.Deprecated(message = \"Field " + (*variables)["name"] +
-                " is deprecated\") "
-          : "";
-  (*variables)["required"] = descriptor->is_required() ? "true" : "false";
+                        (*variables)["type"] =
+                                name_resolver->GetImmutableClassName(descriptor->message_type());
+                        (*variables)["kt_type"] = (*variables)["type"];
+                        (*variables)["mutable_type"] =
+                                name_resolver->GetMutableClassName(descriptor->message_type());
+                        (*variables)["group_or_message"] =
+                                (GetType(descriptor) == FieldDescriptor::TYPE_GROUP) ? "Group"
+                                                                                     : "Message";
+                        // TODO(birdo): Add @deprecated javadoc when generating javadoc is supported
+                        // by the proto compiler
+                        (*variables)["deprecation"] =
+                                descriptor->options().deprecated() ? "@java.lang.Deprecated " : "";
+                        (*variables)["kt_deprecation"] =
+                                descriptor->options().deprecated()
+                                ? "@kotlin.Deprecated(message = \"Field " + (*variables)["name"] +
+                                  " is deprecated\") "
+                                : "";
+                        (*variables)["required"] = descriptor->is_required() ? "true" : "false";
 
-  if (HasHasbit(descriptor)) {
-    // For singular messages and builders, one bit is used for the hasField bit.
-    (*variables)["get_has_field_bit_message"] = GenerateGetBit(messageBitIndex);
+                        if (HasHasbit(descriptor)) {
+                            // For singular messages and builders, one bit is used for the hasField bit.
+                            (*variables)["get_has_field_bit_message"] = GenerateGetBit(messageBitIndex);
 
-    // Note that these have a trailing ";".
-    (*variables)["set_has_field_bit_message"] =
-        GenerateSetBit(messageBitIndex) + ";";
-    (*variables)["clear_has_field_bit_message"] =
-        GenerateClearBit(messageBitIndex) + ";";
+                            // Note that these have a trailing ";".
+                            (*variables)["set_has_field_bit_message"] =
+                                    GenerateSetBit(messageBitIndex) + ";";
+                            (*variables)["clear_has_field_bit_message"] =
+                                    GenerateClearBit(messageBitIndex) + ";";
 
-    (*variables)["is_field_present_message"] = GenerateGetBit(messageBitIndex);
-  } else {
-    (*variables)["set_has_field_bit_message"] = "";
-    (*variables)["clear_has_field_bit_message"] = "";
+                            (*variables)["is_field_present_message"] = GenerateGetBit(messageBitIndex);
+                        } else {
+                            (*variables)["set_has_field_bit_message"] = "";
+                            (*variables)["clear_has_field_bit_message"] = "";
 
-    (*variables)["is_field_present_message"] =
-        (*variables)["name"] + "_ != null";
-  }
+                            (*variables)["is_field_present_message"] =
+                                    (*variables)["name"] + "_ != null";
+                        }
 
-  (*variables)["get_has_field_bit_from_local"] =
-      GenerateGetBitFromLocal(builderBitIndex);
-  (*variables)["set_has_field_bit_to_local"] =
-      GenerateSetBitToLocal(messageBitIndex);
+                        (*variables)["get_has_field_bit_from_local"] =
+                                GenerateGetBitFromLocal(builderBitIndex);
+                        (*variables)["set_has_field_bit_to_local"] =
+                                GenerateSetBitToLocal(messageBitIndex);
 
-  // We use `x.getClass()` as a null check because it generates less bytecode
-  // than an `if (x == null) { throw ... }` statement.
-  (*variables)["null_check"] = "value.getClass();\n";
-}
+                        // We use `x.getClass()` as a null check because it generates less bytecode
+                        // than an `if (x == null) { throw ... }` statement.
+                        (*variables)["null_check"] = "value.getClass();\n";
+                    }
 
-}  // namespace
-
-// ===================================================================
-
-ImmutableMessageFieldLiteGenerator::ImmutableMessageFieldLiteGenerator(
-    const FieldDescriptor* descriptor, int messageBitIndex, Context* context)
-    : descriptor_(descriptor),
-      messageBitIndex_(messageBitIndex),
-      name_resolver_(context->GetNameResolver()) {
-  SetMessageVariables(descriptor, messageBitIndex, 0,
-                      context->GetFieldGeneratorInfo(descriptor),
-                      name_resolver_, &variables_);
-}
-
-ImmutableMessageFieldLiteGenerator::~ImmutableMessageFieldLiteGenerator() {}
-
-int ImmutableMessageFieldLiteGenerator::GetNumBitsForMessage() const {
-  // TODO(dweis): We don't need a has bit for messages as they have null
-  // sentinels and no user should be reflecting on this. We could save some
-  // bits by setting to 0 and updating the runtimes but this might come at a
-  // runtime performance cost since we can't memoize has-bit reads.
-  return HasHasbit(descriptor_) ? 1 : 0;
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateInterfaceMembers(
-    io::Printer* printer) const {
-  WriteFieldAccessorDocComment(printer, descriptor_, HAZZER);
-  printer->Print(variables_, "$deprecation$boolean has$capitalized_name$();\n");
-  WriteFieldAccessorDocComment(printer, descriptor_, GETTER);
-  printer->Print(variables_, "$deprecation$$type$ get$capitalized_name$();\n");
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateMembers(
-    io::Printer* printer) const {
-
-  printer->Print(variables_, "private $type$ $name$_;\n");
-  PrintExtraFieldInfo(variables_, printer);
-
-  if (HasHasbit(descriptor_)) {
-    WriteFieldDocComment(printer, descriptor_);
-    printer->Print(
-        variables_,
-        "@java.lang.Override\n"
-        "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
-        "  return $get_has_field_bit_message$;\n"
-        "}\n");
-    printer->Annotate("{", "}", descriptor_);
-    WriteFieldDocComment(printer, descriptor_);
-    printer->Print(
-        variables_,
-        "@java.lang.Override\n"
-        "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
-        "  return $name$_ == null ? $type$.getDefaultInstance() : $name$_;\n"
-        "}\n");
-    printer->Annotate("{", "}", descriptor_);
-  } else {
-    WriteFieldDocComment(printer, descriptor_);
-    printer->Print(
-        variables_,
-        "@java.lang.Override\n"
-        "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
-        "  return $name$_ != null;\n"
-        "}\n");
-    printer->Annotate("{", "}", descriptor_);
-    WriteFieldDocComment(printer, descriptor_);
-    printer->Print(
-        variables_,
-        "@java.lang.Override\n"
-        "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
-        "  return $name$_ == null ? $type$.getDefaultInstance() : $name$_;\n"
-        "}\n");
-    printer->Annotate("{", "}", descriptor_);
-  }
-
-  // Field.Builder setField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void set$capitalized_name$($type$ value) {\n"
-                 "  $null_check$"
-                 "  $name$_ = value;\n"
-                 "  $set_has_field_bit_message$\n"
-                 "  }\n");
-
-  // Field.Builder mergeField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "@java.lang.SuppressWarnings({\"ReferenceEquality\"})\n"
-      "private void merge$capitalized_name$($type$ value) {\n"
-      "  $null_check$"
-      "  if ($name$_ != null &&\n"
-      "      $name$_ != $type$.getDefaultInstance()) {\n"
-      "    $name$_ =\n"
-      "      $type$.newBuilder($name$_).mergeFrom(value).buildPartial();\n"
-      "  } else {\n"
-      "    $name$_ = value;\n"
-      "  }\n"
-      "  $set_has_field_bit_message$\n"
-      "}\n");
-
-  // Field.Builder clearField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void clear$capitalized_name$() {"
-                 "  $name$_ = null;\n"
-                 "  $clear_has_field_bit_message$\n"
-                 "}\n");
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateBuilderMembers(
-    io::Printer* printer) const {
-  // The comments above the methods below are based on a hypothetical
-  // field of type "Field" called "Field".
-
-  // boolean hasField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
-                 "  return instance.has$capitalized_name$();\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-
-  // Field getField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
-                 "  return instance.get$capitalized_name$();\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-
-  // Field.Builder setField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$set$capitalized_name$$}$($type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(value);\n"
-                 "  return this;\n"
-                 "  }\n");
-  printer->Annotate("{", "}", descriptor_);
-
-  // Field.Builder setField(Field.Builder builderForValue)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
-                 "    $type$.Builder builderForValue) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(builderForValue.build());\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-
-  // Field.Builder mergeField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$merge$capitalized_name$$}$($type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.merge$capitalized_name$(value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-
-  // Field.Builder clearField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$clear$capitalized_name$$}$() {"
-                 "  copyOnWrite();\n"
-                 "  instance.clear$capitalized_name$();\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateKotlinDslMembers(
-    io::Printer* printer) const {
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$kt_deprecation$var $kt_name$: $kt_type$\n"
-                 "  @JvmName(\"${$get$kt_capitalized_name$$}$\")\n"
-                 "  get() = $kt_dsl_builder$.${$get$capitalized_name$$}$()\n"
-                 "  @JvmName(\"${$set$kt_capitalized_name$$}$\")\n"
-                 "  set(value) {\n"
-                 "    $kt_dsl_builder$.${$set$capitalized_name$$}$(value)\n"
-                 "  }\n");
-
-  WriteFieldAccessorDocComment(printer, descriptor_, CLEARER,
-                               /* builder */ false);
-  printer->Print(variables_,
-                 "fun ${$clear$kt_capitalized_name$$}$() {\n"
-                 "  $kt_dsl_builder$.${$clear$capitalized_name$$}$()\n"
-                 "}\n");
-
-  WriteFieldAccessorDocComment(printer, descriptor_, HAZZER);
-  printer->Print(variables_,
-                 "fun ${$has$kt_capitalized_name$$}$(): kotlin.Boolean {\n"
-                 "  return $kt_dsl_builder$.${$has$capitalized_name$$}$()\n"
-                 "}\n");
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateFieldInfo(
-    io::Printer* printer, std::vector<uint16_t>* output) const {
-  WriteIntToUtf16CharSequence(descriptor_->number(), output);
-  WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
-                              output);
-  if (HasHasbit(descriptor_)) {
-    WriteIntToUtf16CharSequence(messageBitIndex_, output);
-  }
-  printer->Print(variables_, "\"$name$_\",\n");
-}
-
-void ImmutableMessageFieldLiteGenerator::GenerateInitializationCode(
-    io::Printer* printer) const {}
-
-std::string ImmutableMessageFieldLiteGenerator::GetBoxedType() const {
-  return name_resolver_->GetImmutableClassName(descriptor_->message_type());
-}
+                }  // namespace
 
 // ===================================================================
 
-ImmutableMessageOneofFieldLiteGenerator::
-    ImmutableMessageOneofFieldLiteGenerator(const FieldDescriptor* descriptor,
-                                            int messageBitIndex,
-                                            Context* context)
-    : ImmutableMessageFieldLiteGenerator(descriptor, messageBitIndex, context) {
-  const OneofGeneratorInfo* info =
-      context->GetOneofGeneratorInfo(descriptor->containing_oneof());
-  SetCommonOneofVariables(descriptor, info, &variables_);
-}
+                ImmutableMessageFieldLiteGenerator::ImmutableMessageFieldLiteGenerator(
+                        const FieldDescriptor *descriptor, int messageBitIndex, Context *context)
+                        : descriptor_(descriptor),
+                          messageBitIndex_(messageBitIndex),
+                          name_resolver_(context->GetNameResolver()) {
+                    SetMessageVariables(descriptor, messageBitIndex, 0,
+                                        context->GetFieldGeneratorInfo(descriptor),
+                                        name_resolver_, &variables_);
+                }
 
-ImmutableMessageOneofFieldLiteGenerator::
-    ~ImmutableMessageOneofFieldLiteGenerator() {}
+                ImmutableMessageFieldLiteGenerator::~ImmutableMessageFieldLiteGenerator() {}
 
-void ImmutableMessageOneofFieldLiteGenerator::GenerateMembers(
-    io::Printer* printer) const {
-  PrintExtraFieldInfo(variables_, printer);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
-                 "  return $has_oneof_case_message$;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
-                 "  if ($has_oneof_case_message$) {\n"
-                 "     return ($type$) $oneof_name$_;\n"
-                 "  }\n"
-                 "  return $type$.getDefaultInstance();\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                int ImmutableMessageFieldLiteGenerator::GetNumBitsForMessage() const {
+                    // TODO(dweis): We don't need a has bit for messages as they have null
+                    // sentinels and no user should be reflecting on this. We could save some
+                    // bits by setting to 0 and updating the runtimes but this might come at a
+                    // runtime performance cost since we can't memoize has-bit reads.
+                    return HasHasbit(descriptor_) ? 1 : 0;
+                }
 
-  // Field.Builder setField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void set$capitalized_name$($type$ value) {\n"
-                 "  $null_check$"
-                 "  $oneof_name$_ = value;\n"
-                 "  $set_oneof_case_message$;\n"
-                 "}\n");
+                void ImmutableMessageFieldLiteGenerator::GenerateInterfaceMembers(
+                        io::Printer *printer) const {
+                    WriteFieldAccessorDocComment(printer, descriptor_, HAZZER);
+                    printer->Print(variables_, "$deprecation$boolean has$capitalized_name$();\n");
+                    WriteFieldAccessorDocComment(printer, descriptor_, GETTER);
+                    printer->Print(variables_, "$deprecation$$type$ get$capitalized_name$();\n");
+                }
 
-  // Field.Builder mergeField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "private void merge$capitalized_name$($type$ value) {\n"
-      "  $null_check$"
-      "  if ($has_oneof_case_message$ &&\n"
-      "      $oneof_name$_ != $type$.getDefaultInstance()) {\n"
-      "    $oneof_name$_ = $type$.newBuilder(($type$) $oneof_name$_)\n"
-      "        .mergeFrom(value).buildPartial();\n"
-      "  } else {\n"
-      "    $oneof_name$_ = value;\n"
-      "  }\n"
-      "  $set_oneof_case_message$;\n"
-      "}\n");
+                void ImmutableMessageFieldLiteGenerator::GenerateMembers(
+                        io::Printer *printer) const {
 
-  // Field.Builder clearField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void clear$capitalized_name$() {\n"
-                 "  if ($has_oneof_case_message$) {\n"
-                 "    $clear_oneof_case_message$;\n"
-                 "    $oneof_name$_ = null;\n"
-                 "  }\n"
-                 "}\n");
-}
+                    printer->Print(variables_, "private $type$ $name$_;\n");
+                    PrintExtraFieldInfo(variables_, printer);
 
-void ImmutableMessageOneofFieldLiteGenerator::GenerateFieldInfo(
-    io::Printer* printer, std::vector<uint16_t>* output) const {
-  WriteIntToUtf16CharSequence(descriptor_->number(), output);
-  WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
-                              output);
-  WriteIntToUtf16CharSequence(descriptor_->containing_oneof()->index(), output);
-  printer->Print(variables_, "$oneof_stored_type$.class,\n");
-}
+                    if (HasHasbit(descriptor_)) {
+                        WriteFieldDocComment(printer, descriptor_);
+                        printer->Print(
+                                variables_,
+                                "@java.lang.Override\n"
+                                "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
+                                "  return $get_has_field_bit_message$;\n"
+                                "}\n");
+                        printer->Annotate("{", "}", descriptor_);
+                        WriteFieldDocComment(printer, descriptor_);
+                        printer->Print(
+                                variables_,
+                                "@java.lang.Override\n"
+                                "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
+                                "  return $name$_ == null ? $type$.getDefaultInstance() : $name$_;\n"
+                                "}\n");
+                        printer->Annotate("{", "}", descriptor_);
+                    } else {
+                        WriteFieldDocComment(printer, descriptor_);
+                        printer->Print(
+                                variables_,
+                                "@java.lang.Override\n"
+                                "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
+                                "  return $name$_ != null;\n"
+                                "}\n");
+                        printer->Annotate("{", "}", descriptor_);
+                        WriteFieldDocComment(printer, descriptor_);
+                        printer->Print(
+                                variables_,
+                                "@java.lang.Override\n"
+                                "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
+                                "  return $name$_ == null ? $type$.getDefaultInstance() : $name$_;\n"
+                                "}\n");
+                        printer->Annotate("{", "}", descriptor_);
+                    }
 
-void ImmutableMessageOneofFieldLiteGenerator::GenerateBuilderMembers(
-    io::Printer* printer) const {
-  // The comments above the methods below are based on a hypothetical
-  // field of type "Field" called "Field".
+                    // Field.Builder setField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void set$capitalized_name$($type$ value) {\n"
+                                   "  $null_check$"
+                                   "  $name$_ = value;\n"
+                                   "  $set_has_field_bit_message$\n"
+                                   "  }\n");
 
-  // boolean hasField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
-                 "  return instance.has$capitalized_name$();\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Field.Builder mergeField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "@java.lang.SuppressWarnings({\"ReferenceEquality\"})\n"
+                            "private void merge$capitalized_name$($type$ value) {\n"
+                            "  $null_check$"
+                            "  if ($name$_ != null &&\n"
+                            "      $name$_ != $type$.getDefaultInstance()) {\n"
+                            "    $name$_ =\n"
+                            "      $type$.newBuilder($name$_).mergeFrom(value).buildPartial();\n"
+                            "  } else {\n"
+                            "    $name$_ = value;\n"
+                            "  }\n"
+                            "  $set_has_field_bit_message$\n"
+                            "}\n");
 
-  // Field getField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
-                 "  return instance.get$capitalized_name$();\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Field.Builder clearField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void clear$capitalized_name$() {"
+                                   "  $name$_ = null;\n"
+                                   "  $clear_has_field_bit_message$\n"
+                                   "}\n");
+                }
 
-  // Field.Builder setField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$set$capitalized_name$$}$($type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                void ImmutableMessageFieldLiteGenerator::GenerateBuilderMembers(
+                        io::Printer *printer) const {
+                    // The comments above the methods below are based on a hypothetical
+                    // field of type "Field" called "Field".
 
-  // Field.Builder setField(Field.Builder builderForValue)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
-                 "    $type$.Builder builderForValue) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(builderForValue.build());\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // boolean hasField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
+                                   "  return instance.has$capitalized_name$();\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Field.Builder mergeField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$merge$capitalized_name$$}$($type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.merge$capitalized_name$(value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Field getField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
+                                   "  return instance.get$capitalized_name$();\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Field.Builder clearField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "$deprecation$public Builder ${$clear$capitalized_name$$}$() {\n"
-      "  copyOnWrite();\n"
-      "  instance.clear$capitalized_name$();\n"
-      "  return this;\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
-}
+                    // Field.Builder setField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$set$capitalized_name$$}$($type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(value);\n"
+                                   "  return this;\n"
+                                   "  }\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Field.Builder setField(Field.Builder builderForValue)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
+                                   "    $type$.Builder builderForValue) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(builderForValue.build());\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Field.Builder mergeField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$merge$capitalized_name$$}$($type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.merge$capitalized_name$(value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Field.Builder clearField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$clear$capitalized_name$$}$() {"
+                                   "  copyOnWrite();\n"
+                                   "  instance.clear$capitalized_name$();\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                }
+
+                void ImmutableMessageFieldLiteGenerator::GenerateKotlinDslMembers(
+                        io::Printer *printer) const {
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$kt_deprecation$var $kt_name$: $kt_type$\n"
+                                   "  @JvmName(\"${$get$kt_capitalized_name$$}$\")\n"
+                                   "  get() = $kt_dsl_builder$.${$get$capitalized_name$$}$()\n"
+                                   "  @JvmName(\"${$set$kt_capitalized_name$$}$\")\n"
+                                   "  set(value) {\n"
+                                   "    $kt_dsl_builder$.${$set$capitalized_name$$}$(value)\n"
+                                   "  }\n");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, CLEARER,
+                            /* builder */ false);
+                    printer->Print(variables_,
+                                   "fun ${$clear$kt_capitalized_name$$}$() {\n"
+                                   "  $kt_dsl_builder$.${$clear$capitalized_name$$}$()\n"
+                                   "}\n");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, HAZZER);
+                    printer->Print(variables_,
+                                   "fun ${$has$kt_capitalized_name$$}$(): kotlin.Boolean {\n"
+                                   "  return $kt_dsl_builder$.${$has$capitalized_name$$}$()\n"
+                                   "}\n");
+                }
+
+                void ImmutableMessageFieldLiteGenerator::GenerateFieldInfo(
+                        io::Printer *printer, std::vector<uint16_t> *output) const {
+                    WriteIntToUtf16CharSequence(descriptor_->number(), output);
+                    WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
+                                                output);
+                    if (HasHasbit(descriptor_)) {
+                        WriteIntToUtf16CharSequence(messageBitIndex_, output);
+                    }
+                    printer->Print(variables_, "\"$name$_\",\n");
+                }
+
+                void ImmutableMessageFieldLiteGenerator::GenerateInitializationCode(
+                        io::Printer *printer) const {}
+
+                std::string ImmutableMessageFieldLiteGenerator::GetBoxedType() const {
+                    return name_resolver_->GetImmutableClassName(descriptor_->message_type());
+                }
 
 // ===================================================================
 
-RepeatedImmutableMessageFieldLiteGenerator::
-    RepeatedImmutableMessageFieldLiteGenerator(
-        const FieldDescriptor* descriptor, int messageBitIndex,
-        Context* context)
-    : descriptor_(descriptor), name_resolver_(context->GetNameResolver()) {
-  SetMessageVariables(descriptor, messageBitIndex, 0,
-                      context->GetFieldGeneratorInfo(descriptor),
-                      name_resolver_, &variables_);
-}
+                ImmutableMessageOneofFieldLiteGenerator::
+                ImmutableMessageOneofFieldLiteGenerator(const FieldDescriptor *descriptor,
+                                                        int messageBitIndex,
+                                                        Context *context)
+                        : ImmutableMessageFieldLiteGenerator(descriptor, messageBitIndex, context) {
+                    const OneofGeneratorInfo *info =
+                            context->GetOneofGeneratorInfo(descriptor->containing_oneof());
+                    SetCommonOneofVariables(descriptor, info, &variables_);
+                }
 
-RepeatedImmutableMessageFieldLiteGenerator::
-    ~RepeatedImmutableMessageFieldLiteGenerator() {}
+                ImmutableMessageOneofFieldLiteGenerator::
+                ~ImmutableMessageOneofFieldLiteGenerator() {}
 
-int RepeatedImmutableMessageFieldLiteGenerator::GetNumBitsForMessage() const {
-  return 0;
-}
+                void ImmutableMessageOneofFieldLiteGenerator::GenerateMembers(
+                        io::Printer *printer) const {
+                    PrintExtraFieldInfo(variables_, printer);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
+                                   "  return $has_oneof_case_message$;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
+                                   "  if ($has_oneof_case_message$) {\n"
+                                   "     return ($type$) $oneof_name$_;\n"
+                                   "  }\n"
+                                   "  return $type$.getDefaultInstance();\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateInterfaceMembers(
-    io::Printer* printer) const {
-  // TODO(jonp): In the future, consider having methods specific to the
-  // interface so that builders can choose dynamically to either return a
-  // message or a nested builder, so that asking for the interface doesn't
-  // cause a message to ever be built.
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$java.util.List<$type$> \n"
-                 "    get$capitalized_name$List();\n");
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$$type$ get$capitalized_name$(int index);\n");
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$int get$capitalized_name$Count();\n");
-}
+                    // Field.Builder setField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void set$capitalized_name$($type$ value) {\n"
+                                   "  $null_check$"
+                                   "  $oneof_name$_ = value;\n"
+                                   "  $set_oneof_case_message$;\n"
+                                   "}\n");
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateMembers(
-    io::Printer* printer) const {
-  printer->Print(
-      variables_,
-      "private com.google.protobuf.Internal.ProtobufList<$type$> $name$_;\n");
-  PrintExtraFieldInfo(variables_, printer);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public java.util.List<$type$> "
-                 "${$get$capitalized_name$List$}$() {\n"
-                 "  return $name$_;\n"  // note:  unmodifiable list
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "$deprecation$public java.util.List<? extends $type$OrBuilder> \n"
-      "    ${$get$capitalized_name$OrBuilderList$}$() {\n"
-      "  return $name$_;\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "@java.lang.Override\n"
-      "$deprecation$public int ${$get$capitalized_name$Count$}$() {\n"
-      "  return $name$_.size();\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "@java.lang.Override\n"
-      "$deprecation$public $type$ ${$get$capitalized_name$$}$(int index) {\n"
-      "  return $name$_.get(index);\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public $type$OrBuilder "
-                 "${$get$capitalized_name$OrBuilder$}$(\n"
-                 "    int index) {\n"
-                 "  return $name$_.get(index);\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Field.Builder mergeField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "private void merge$capitalized_name$($type$ value) {\n"
+                            "  $null_check$"
+                            "  if ($has_oneof_case_message$ &&\n"
+                            "      $oneof_name$_ != $type$.getDefaultInstance()) {\n"
+                            "    $oneof_name$_ = $type$.newBuilder(($type$) $oneof_name$_)\n"
+                            "        .mergeFrom(value).buildPartial();\n"
+                            "  } else {\n"
+                            "    $oneof_name$_ = value;\n"
+                            "  }\n"
+                            "  $set_oneof_case_message$;\n"
+                            "}\n");
 
-  printer->Print(
-      variables_,
-      "private void ensure$capitalized_name$IsMutable() {\n"
-      // Use a temporary to avoid a redundant iget-object.
-      "  com.google.protobuf.Internal.ProtobufList<$type$> tmp = $name$_;\n"
-      "  if (!tmp.isModifiable()) {\n"
-      "    $name$_ =\n"
-      "        com.google.protobuf.GeneratedMessageLite.mutableCopy(tmp);\n"
-      "   }\n"
-      "}\n"
-      "\n");
+                    // Field.Builder clearField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void clear$capitalized_name$() {\n"
+                                   "  if ($has_oneof_case_message$) {\n"
+                                   "    $clear_oneof_case_message$;\n"
+                                   "    $oneof_name$_ = null;\n"
+                                   "  }\n"
+                                   "}\n");
+                }
 
-  // Builder setRepeatedField(int index, Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void set$capitalized_name$(\n"
-                 "    int index, $type$ value) {\n"
-                 "  $null_check$"
-                 "  ensure$capitalized_name$IsMutable();\n"
-                 "  $name$_.set(index, value);\n"
-                 "}\n");
+                void ImmutableMessageOneofFieldLiteGenerator::GenerateFieldInfo(
+                        io::Printer *printer, std::vector<uint16_t> *output) const {
+                    WriteIntToUtf16CharSequence(descriptor_->number(), output);
+                    WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
+                                                output);
+                    WriteIntToUtf16CharSequence(descriptor_->containing_oneof()->index(), output);
+                    printer->Print(variables_, "$oneof_stored_type$.class,\n");
+                }
 
-  // Builder addRepeatedField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void add$capitalized_name$($type$ value) {\n"
-                 "  $null_check$"
-                 "  ensure$capitalized_name$IsMutable();\n"
-                 "  $name$_.add(value);\n"
-                 "}\n");
+                void ImmutableMessageOneofFieldLiteGenerator::GenerateBuilderMembers(
+                        io::Printer *printer) const {
+                    // The comments above the methods below are based on a hypothetical
+                    // field of type "Field" called "Field".
 
-  // Builder addRepeatedField(int index, Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void add$capitalized_name$(\n"
-                 "    int index, $type$ value) {\n"
-                 "  $null_check$"
-                 "  ensure$capitalized_name$IsMutable();\n"
-                 "  $name$_.add(index, value);\n"
-                 "}\n");
+                    // boolean hasField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public boolean ${$has$capitalized_name$$}$() {\n"
+                                   "  return instance.has$capitalized_name$();\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Builder addAllRepeatedField(Iterable<Field> values)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void addAll$capitalized_name$(\n"
-                 "    java.lang.Iterable<? extends $type$> values) {\n"
-                 "  ensure$capitalized_name$IsMutable();\n"
-                 "  com.google.protobuf.AbstractMessageLite.addAll(\n"
-                 "      values, $name$_);\n"
-                 "}\n");
+                    // Field getField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public $type$ ${$get$capitalized_name$$}$() {\n"
+                                   "  return instance.get$capitalized_name$();\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Builder clearAllRepeatedField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void clear$capitalized_name$() {\n"
-                 "  $name$_ = emptyProtobufList();\n"
-                 "}\n");
+                    // Field.Builder setField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$set$capitalized_name$$}$($type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Builder removeRepeatedField(int index)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "private void remove$capitalized_name$(int index) {\n"
-                 "  ensure$capitalized_name$IsMutable();\n"
-                 "  $name$_.remove(index);\n"
-                 "}\n");
-}
+                    // Field.Builder setField(Field.Builder builderForValue)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
+                                   "    $type$.Builder builderForValue) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(builderForValue.build());\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateBuilderMembers(
-    io::Printer* printer) const {
-  // The comments above the methods below are based on a hypothetical
-  // repeated field of type "Field" called "RepeatedField".
+                    // Field.Builder mergeField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$merge$capitalized_name$$}$($type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.merge$capitalized_name$(value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // List<Field> getRepeatedFieldList()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "@java.lang.Override\n"
-                 "$deprecation$public java.util.List<$type$> "
-                 "${$get$capitalized_name$List$}$() {\n"
-                 "  return java.util.Collections.unmodifiableList(\n"
-                 "      instance.get$capitalized_name$List());\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Field.Builder clearField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "$deprecation$public Builder ${$clear$capitalized_name$$}$() {\n"
+                            "  copyOnWrite();\n"
+                            "  instance.clear$capitalized_name$();\n"
+                            "  return this;\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                }
 
-  // int getRepeatedFieldCount()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "@java.lang.Override\n"
-      "$deprecation$public int ${$get$capitalized_name$Count$}$() {\n"
-      "  return instance.get$capitalized_name$Count();\n"
-      "}");
-  printer->Annotate("{", "}", descriptor_);
+// ===================================================================
 
-  // Field getRepeatedField(int index)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "@java.lang.Override\n"
-      "$deprecation$public $type$ ${$get$capitalized_name$$}$(int index) {\n"
-      "  return instance.get$capitalized_name$(index);\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                RepeatedImmutableMessageFieldLiteGenerator::
+                RepeatedImmutableMessageFieldLiteGenerator(
+                        const FieldDescriptor *descriptor, int messageBitIndex,
+                        Context *context)
+                        : descriptor_(descriptor), name_resolver_(context->GetNameResolver()) {
+                    SetMessageVariables(descriptor, messageBitIndex, 0,
+                                        context->GetFieldGeneratorInfo(descriptor),
+                                        name_resolver_, &variables_);
+                }
 
-  // Builder setRepeatedField(int index, Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
-                 "    int index, $type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(index, value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                RepeatedImmutableMessageFieldLiteGenerator::
+                ~RepeatedImmutableMessageFieldLiteGenerator() {}
 
-  // Builder setRepeatedField(int index, Field.Builder builderForValue)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
-                 "    int index, $type$.Builder builderForValue) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.set$capitalized_name$(index,\n"
-                 "      builderForValue.build());\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                int RepeatedImmutableMessageFieldLiteGenerator::GetNumBitsForMessage() const {
+                    return 0;
+                }
 
-  // Builder addRepeatedField(Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$add$capitalized_name$$}$($type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.add$capitalized_name$(value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateInterfaceMembers(
+                        io::Printer *printer) const {
+                    // TODO(jonp): In the future, consider having methods specific to the
+                    // interface so that builders can choose dynamically to either return a
+                    // message or a nested builder, so that asking for the interface doesn't
+                    // cause a message to ever be built.
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$java.util.List<$type$> \n"
+                                   "    get$capitalized_name$List();\n");
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$$type$ get$capitalized_name$(int index);\n");
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$int get$capitalized_name$Count();\n");
+                }
 
-  // Builder addRepeatedField(int index, Field value)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
-                 "    int index, $type$ value) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.add$capitalized_name$(index, value);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-  // Builder addRepeatedField(Field.Builder builderForValue)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
-                 "    $type$.Builder builderForValue) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.add$capitalized_name$(builderForValue.build());\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateMembers(
+                        io::Printer *printer) const {
+                    printer->Print(
+                            variables_,
+                            "private com.google.protobuf.Internal.ProtobufList<$type$> $name$_;\n");
+                    PrintExtraFieldInfo(variables_, printer);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public java.util.List<$type$> "
+                                   "${$get$capitalized_name$List$}$() {\n"
+                                   "  return $name$_;\n"  // note:  unmodifiable list
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "$deprecation$public java.util.List<? extends $type$OrBuilder> \n"
+                            "    ${$get$capitalized_name$OrBuilderList$}$() {\n"
+                            "  return $name$_;\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "@java.lang.Override\n"
+                            "$deprecation$public int ${$get$capitalized_name$Count$}$() {\n"
+                            "  return $name$_.size();\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "@java.lang.Override\n"
+                            "$deprecation$public $type$ ${$get$capitalized_name$$}$(int index) {\n"
+                            "  return $name$_.get(index);\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public $type$OrBuilder "
+                                   "${$get$capitalized_name$OrBuilder$}$(\n"
+                                   "    int index) {\n"
+                                   "  return $name$_.get(index);\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  // Builder addRepeatedField(int index, Field.Builder builderForValue)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
-                 "    int index, $type$.Builder builderForValue) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.add$capitalized_name$(index,\n"
-                 "      builderForValue.build());\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    printer->Print(
+                            variables_,
+                            "private void ensure$capitalized_name$IsMutable() {\n"
+                            // Use a temporary to avoid a redundant iget-object.
+                            "  com.google.protobuf.Internal.ProtobufList<$type$> tmp = $name$_;\n"
+                            "  if (!tmp.isModifiable()) {\n"
+                            "    $name$_ =\n"
+                            "        com.google.protobuf.GeneratedMessageLite.mutableCopy(tmp);\n"
+                            "   }\n"
+                            "}\n"
+                            "\n");
 
-  // Builder addAllRepeatedField(Iterable<Field> values)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder ${$addAll$capitalized_name$$}$(\n"
-                 "    java.lang.Iterable<? extends $type$> values) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.addAll$capitalized_name$(values);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Builder setRepeatedField(int index, Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void set$capitalized_name$(\n"
+                                   "    int index, $type$ value) {\n"
+                                   "  $null_check$"
+                                   "  ensure$capitalized_name$IsMutable();\n"
+                                   "  $name$_.set(index, value);\n"
+                                   "}\n");
 
-  // Builder clearAllRepeatedField()
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(
-      variables_,
-      "$deprecation$public Builder ${$clear$capitalized_name$$}$() {\n"
-      "  copyOnWrite();\n"
-      "  instance.clear$capitalized_name$();\n"
-      "  return this;\n"
-      "}\n");
-  printer->Annotate("{", "}", descriptor_);
+                    // Builder addRepeatedField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void add$capitalized_name$($type$ value) {\n"
+                                   "  $null_check$"
+                                   "  ensure$capitalized_name$IsMutable();\n"
+                                   "  $name$_.add(value);\n"
+                                   "}\n");
 
-  // Builder removeRepeatedField(int index)
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$deprecation$public Builder "
-                 "${$remove$capitalized_name$$}$(int index) {\n"
-                 "  copyOnWrite();\n"
-                 "  instance.remove$capitalized_name$(index);\n"
-                 "  return this;\n"
-                 "}\n");
-  printer->Annotate("{", "}", descriptor_);
-}
+                    // Builder addRepeatedField(int index, Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void add$capitalized_name$(\n"
+                                   "    int index, $type$ value) {\n"
+                                   "  $null_check$"
+                                   "  ensure$capitalized_name$IsMutable();\n"
+                                   "  $name$_.add(index, value);\n"
+                                   "}\n");
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateFieldInfo(
-    io::Printer* printer, std::vector<uint16_t>* output) const {
-  WriteIntToUtf16CharSequence(descriptor_->number(), output);
-  WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
-                              output);
-  printer->Print(variables_,
-                 "\"$name$_\",\n"
-                 "$type$.class,\n");
-}
+                    // Builder addAllRepeatedField(Iterable<Field> values)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void addAll$capitalized_name$(\n"
+                                   "    java.lang.Iterable<? extends $type$> values) {\n"
+                                   "  ensure$capitalized_name$IsMutable();\n"
+                                   "  com.google.protobuf.AbstractMessageLite.addAll(\n"
+                                   "      values, $name$_);\n"
+                                   "}\n");
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateInitializationCode(
-    io::Printer* printer) const {
-  printer->Print(variables_, "$name$_ = emptyProtobufList();\n");
-}
+                    // Builder clearAllRepeatedField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void clear$capitalized_name$() {\n"
+                                   "  $name$_ = emptyProtobufList();\n"
+                                   "}\n");
 
-std::string RepeatedImmutableMessageFieldLiteGenerator::GetBoxedType() const {
-  return name_resolver_->GetImmutableClassName(descriptor_->message_type());
-}
+                    // Builder removeRepeatedField(int index)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "private void remove$capitalized_name$(int index) {\n"
+                                   "  ensure$capitalized_name$IsMutable();\n"
+                                   "  $name$_.remove(index);\n"
+                                   "}\n");
+                }
 
-void RepeatedImmutableMessageFieldLiteGenerator::GenerateKotlinDslMembers(
-    io::Printer* printer) const {
-  printer->Print(
-      variables_,
-      "/**\n"
-      " * An uninstantiable, behaviorless type to represent the field in\n"
-      " * generics.\n"
-      " */\n"
-      "@kotlin.OptIn"
-      "(com.google.protobuf.kotlin.OnlyForUseByGeneratedProtoCode::class)\n"
-      "class ${$$kt_capitalized_name$Proxy$}$ private constructor()"
-      " : com.google.protobuf.kotlin.DslProxy()\n");
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateBuilderMembers(
+                        io::Printer *printer) const {
+                    // The comments above the methods below are based on a hypothetical
+                    // repeated field of type "Field" called "RepeatedField".
 
-  WriteFieldDocComment(printer, descriptor_);
-  printer->Print(variables_,
-                 "$kt_deprecation$ val $kt_name$: "
-                 "com.google.protobuf.kotlin.DslList"
-                 "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>\n"
-                 "  @kotlin.jvm.JvmSynthetic\n"
-                 "  get() = com.google.protobuf.kotlin.DslList(\n"
-                 "    $kt_dsl_builder$.${$get$capitalized_name$List$}$()\n"
-                 "  )\n");
+                    // List<Field> getRepeatedFieldList()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "@java.lang.Override\n"
+                                   "$deprecation$public java.util.List<$type$> "
+                                   "${$get$capitalized_name$List$}$() {\n"
+                                   "  return java.util.Collections.unmodifiableList(\n"
+                                   "      instance.get$capitalized_name$List());\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, LIST_ADDER,
-                               /* builder */ false);
-  printer->Print(variables_,
-                 "@kotlin.jvm.JvmSynthetic\n"
-                 "@kotlin.jvm.JvmName(\"add$kt_capitalized_name$\")\n"
-                 "fun com.google.protobuf.kotlin.DslList"
-                 "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-                 "add(value: $kt_type$) {\n"
-                 "  $kt_dsl_builder$.${$add$capitalized_name$$}$(value)\n"
-                 "}");
+                    // int getRepeatedFieldCount()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "@java.lang.Override\n"
+                            "$deprecation$public int ${$get$capitalized_name$Count$}$() {\n"
+                            "  return instance.get$capitalized_name$Count();\n"
+                            "}");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, LIST_ADDER,
-                               /* builder */ false);
-  printer->Print(variables_,
-                 "@kotlin.jvm.JvmSynthetic\n"
-                 "@kotlin.jvm.JvmName(\"plusAssign$kt_capitalized_name$\")\n"
-                 "inline operator fun com.google.protobuf.kotlin.DslList"
-                 "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-                 "plusAssign(value: $kt_type$) {\n"
-                 "  add(value)\n"
-                 "}");
+                    // Field getRepeatedField(int index)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "@java.lang.Override\n"
+                            "$deprecation$public $type$ ${$get$capitalized_name$$}$(int index) {\n"
+                            "  return instance.get$capitalized_name$(index);\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, LIST_MULTI_ADDER,
-                               /* builder */ false);
-  printer->Print(variables_,
-                 "@kotlin.jvm.JvmSynthetic\n"
-                 "@kotlin.jvm.JvmName(\"addAll$kt_capitalized_name$\")\n"
-                 "fun com.google.protobuf.kotlin.DslList"
-                 "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-                 "addAll(values: kotlin.collections.Iterable<$kt_type$>) {\n"
-                 "  $kt_dsl_builder$.${$addAll$capitalized_name$$}$(values)\n"
-                 "}");
+                    // Builder setRepeatedField(int index, Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
+                                   "    int index, $type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(index, value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, LIST_MULTI_ADDER,
-                               /* builder */ false);
-  printer->Print(
-      variables_,
-      "@kotlin.jvm.JvmSynthetic\n"
-      "@kotlin.jvm.JvmName(\"plusAssignAll$kt_capitalized_name$\")\n"
-      "inline operator fun com.google.protobuf.kotlin.DslList"
-      "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-      "plusAssign(values: kotlin.collections.Iterable<$kt_type$>) {\n"
-      "  addAll(values)\n"
-      "}");
+                    // Builder setRepeatedField(int index, Field.Builder builderForValue)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$set$capitalized_name$$}$(\n"
+                                   "    int index, $type$.Builder builderForValue) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.set$capitalized_name$(index,\n"
+                                   "      builderForValue.build());\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, LIST_INDEXED_SETTER,
-                               /* builder */ false);
-  printer->Print(
-      variables_,
-      "@kotlin.jvm.JvmSynthetic\n"
-      "@kotlin.jvm.JvmName(\"set$kt_capitalized_name$\")\n"
-      "operator fun com.google.protobuf.kotlin.DslList"
-      "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-      "set(index: kotlin.Int, value: $kt_type$) {\n"
-      "  $kt_dsl_builder$.${$set$capitalized_name$$}$(index, value)\n"
-      "}");
+                    // Builder addRepeatedField(Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$add$capitalized_name$$}$($type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.add$capitalized_name$(value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-  WriteFieldAccessorDocComment(printer, descriptor_, CLEARER,
-                               /* builder */ false);
-  printer->Print(variables_,
-                 "@kotlin.jvm.JvmSynthetic\n"
-                 "@kotlin.jvm.JvmName(\"clear$kt_capitalized_name$\")\n"
-                 "fun com.google.protobuf.kotlin.DslList"
-                 "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
-                 "clear() {\n"
-                 "  $kt_dsl_builder$.${$clear$capitalized_name$$}$()\n"
-                 "}");
-}
+                    // Builder addRepeatedField(int index, Field value)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
+                                   "    int index, $type$ value) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.add$capitalized_name$(index, value);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                    // Builder addRepeatedField(Field.Builder builderForValue)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
+                                   "    $type$.Builder builderForValue) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.add$capitalized_name$(builderForValue.build());\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                    // Builder addRepeatedField(int index, Field.Builder builderForValue)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$add$capitalized_name$$}$(\n"
+                                   "    int index, $type$.Builder builderForValue) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.add$capitalized_name$(index,\n"
+                                   "      builderForValue.build());\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Builder addAllRepeatedField(Iterable<Field> values)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder ${$addAll$capitalized_name$$}$(\n"
+                                   "    java.lang.Iterable<? extends $type$> values) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.addAll$capitalized_name$(values);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Builder clearAllRepeatedField()
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(
+                            variables_,
+                            "$deprecation$public Builder ${$clear$capitalized_name$$}$() {\n"
+                            "  copyOnWrite();\n"
+                            "  instance.clear$capitalized_name$();\n"
+                            "  return this;\n"
+                            "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+
+                    // Builder removeRepeatedField(int index)
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$deprecation$public Builder "
+                                   "${$remove$capitalized_name$$}$(int index) {\n"
+                                   "  copyOnWrite();\n"
+                                   "  instance.remove$capitalized_name$(index);\n"
+                                   "  return this;\n"
+                                   "}\n");
+                    printer->Annotate("{", "}", descriptor_);
+                }
+
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateFieldInfo(
+                        io::Printer *printer, std::vector<uint16_t> *output) const {
+                    WriteIntToUtf16CharSequence(descriptor_->number(), output);
+                    WriteIntToUtf16CharSequence(GetExperimentalJavaFieldType(descriptor_),
+                                                output);
+                    printer->Print(variables_,
+                                   "\"$name$_\",\n"
+                                   "$type$.class,\n");
+                }
+
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateInitializationCode(
+                        io::Printer *printer) const {
+                    printer->Print(variables_, "$name$_ = emptyProtobufList();\n");
+                }
+
+                std::string RepeatedImmutableMessageFieldLiteGenerator::GetBoxedType() const {
+                    return name_resolver_->GetImmutableClassName(descriptor_->message_type());
+                }
+
+                void RepeatedImmutableMessageFieldLiteGenerator::GenerateKotlinDslMembers(
+                        io::Printer *printer) const {
+                    printer->Print(
+                            variables_,
+                            "/**\n"
+                            " * An uninstantiable, behaviorless type to represent the field in\n"
+                            " * generics.\n"
+                            " */\n"
+                            "@kotlin.OptIn"
+                            "(com.google.protobuf.kotlin.OnlyForUseByGeneratedProtoCode::class)\n"
+                            "class ${$$kt_capitalized_name$Proxy$}$ private constructor()"
+                            " : com.google.protobuf.kotlin.DslProxy()\n");
+
+                    WriteFieldDocComment(printer, descriptor_);
+                    printer->Print(variables_,
+                                   "$kt_deprecation$ val $kt_name$: "
+                                   "com.google.protobuf.kotlin.DslList"
+                                   "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>\n"
+                                   "  @kotlin.jvm.JvmSynthetic\n"
+                                   "  get() = com.google.protobuf.kotlin.DslList(\n"
+                                   "    $kt_dsl_builder$.${$get$capitalized_name$List$}$()\n"
+                                   "  )\n");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, LIST_ADDER,
+                            /* builder */ false);
+                    printer->Print(variables_,
+                                   "@kotlin.jvm.JvmSynthetic\n"
+                                   "@kotlin.jvm.JvmName(\"add$kt_capitalized_name$\")\n"
+                                   "fun com.google.protobuf.kotlin.DslList"
+                                   "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                                   "add(value: $kt_type$) {\n"
+                                   "  $kt_dsl_builder$.${$add$capitalized_name$$}$(value)\n"
+                                   "}");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, LIST_ADDER,
+                            /* builder */ false);
+                    printer->Print(variables_,
+                                   "@kotlin.jvm.JvmSynthetic\n"
+                                   "@kotlin.jvm.JvmName(\"plusAssign$kt_capitalized_name$\")\n"
+                                   "inline operator fun com.google.protobuf.kotlin.DslList"
+                                   "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                                   "plusAssign(value: $kt_type$) {\n"
+                                   "  add(value)\n"
+                                   "}");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, LIST_MULTI_ADDER,
+                            /* builder */ false);
+                    printer->Print(variables_,
+                                   "@kotlin.jvm.JvmSynthetic\n"
+                                   "@kotlin.jvm.JvmName(\"addAll$kt_capitalized_name$\")\n"
+                                   "fun com.google.protobuf.kotlin.DslList"
+                                   "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                                   "addAll(values: kotlin.collections.Iterable<$kt_type$>) {\n"
+                                   "  $kt_dsl_builder$.${$addAll$capitalized_name$$}$(values)\n"
+                                   "}");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, LIST_MULTI_ADDER,
+                            /* builder */ false);
+                    printer->Print(
+                            variables_,
+                            "@kotlin.jvm.JvmSynthetic\n"
+                            "@kotlin.jvm.JvmName(\"plusAssignAll$kt_capitalized_name$\")\n"
+                            "inline operator fun com.google.protobuf.kotlin.DslList"
+                            "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                            "plusAssign(values: kotlin.collections.Iterable<$kt_type$>) {\n"
+                            "  addAll(values)\n"
+                            "}");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, LIST_INDEXED_SETTER,
+                            /* builder */ false);
+                    printer->Print(
+                            variables_,
+                            "@kotlin.jvm.JvmSynthetic\n"
+                            "@kotlin.jvm.JvmName(\"set$kt_capitalized_name$\")\n"
+                            "operator fun com.google.protobuf.kotlin.DslList"
+                            "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                            "set(index: kotlin.Int, value: $kt_type$) {\n"
+                            "  $kt_dsl_builder$.${$set$capitalized_name$$}$(index, value)\n"
+                            "}");
+
+                    WriteFieldAccessorDocComment(printer, descriptor_, CLEARER,
+                            /* builder */ false);
+                    printer->Print(variables_,
+                                   "@kotlin.jvm.JvmSynthetic\n"
+                                   "@kotlin.jvm.JvmName(\"clear$kt_capitalized_name$\")\n"
+                                   "fun com.google.protobuf.kotlin.DslList"
+                                   "<$kt_type$, ${$$kt_capitalized_name$Proxy$}$>."
+                                   "clear() {\n"
+                                   "  $kt_dsl_builder$.${$clear$capitalized_name$$}$()\n"
+                                   "}");
+                }
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google

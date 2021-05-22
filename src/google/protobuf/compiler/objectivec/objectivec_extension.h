@@ -35,33 +35,38 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace objectivec {
+    namespace protobuf {
+        namespace compiler {
+            namespace objectivec {
 
-class ExtensionGenerator {
- public:
-  ExtensionGenerator(const std::string& root_class_name,
-                     const FieldDescriptor* descriptor);
-  ~ExtensionGenerator();
+                class ExtensionGenerator {
+                public:
+                    ExtensionGenerator(const std::string &root_class_name,
+                                       const FieldDescriptor *descriptor);
 
-  ExtensionGenerator(const ExtensionGenerator&) = delete;
-  ExtensionGenerator& operator=(const ExtensionGenerator&) = delete;
+                    ~ExtensionGenerator();
 
-  void GenerateMembersHeader(io::Printer* printer);
-  void GenerateStaticVariablesInitialization(io::Printer* printer);
-  void GenerateRegistrationSource(io::Printer* printer);
-  void DetermineObjectiveCClassDefinitions(std::set<std::string>* fwd_decls);
+                    ExtensionGenerator(const ExtensionGenerator &) = delete;
 
- private:
-  std::string method_name_;
-  std::string root_class_and_method_name_;
-  const FieldDescriptor* descriptor_;
-};
+                    ExtensionGenerator &operator=(const ExtensionGenerator &) = delete;
 
-}  // namespace objectivec
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateMembersHeader(io::Printer *printer);
+
+                    void GenerateStaticVariablesInitialization(io::Printer *printer);
+
+                    void GenerateRegistrationSource(io::Printer *printer);
+
+                    void DetermineObjectiveCClassDefinitions(std::set<std::string> *fwd_decls);
+
+                private:
+                    std::string method_name_;
+                    std::string root_class_and_method_name_;
+                    const FieldDescriptor *descriptor_;
+                };
+
+            }  // namespace objectivec
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_MESSAGE_H__

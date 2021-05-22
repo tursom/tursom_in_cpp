@@ -10,7 +10,7 @@ int main() {
     msg.mutable_chatmsg()->set_sender("test sender");
     std::cout << msg.DebugString() << std::endl;
 
-    msg.release_msgid();
+    std::cout << *msg.release_msgid() << std::endl;
     std::cout << msg.DebugString() << std::endl;
     return 0;
 }

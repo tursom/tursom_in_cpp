@@ -36,39 +36,46 @@
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
-class ImmutableMapFieldLiteGenerator : public ImmutableFieldLiteGenerator {
- public:
-  explicit ImmutableMapFieldLiteGenerator(const FieldDescriptor* descriptor,
-                                          int messageBitIndex,
-                                          Context* context);
-  ~ImmutableMapFieldLiteGenerator();
+                class ImmutableMapFieldLiteGenerator : public ImmutableFieldLiteGenerator {
+                public:
+                    explicit ImmutableMapFieldLiteGenerator(const FieldDescriptor *descriptor,
+                                                            int messageBitIndex,
+                                                            Context *context);
 
-  // implements ImmutableFieldLiteGenerator ------------------------------------
-  int GetNumBitsForMessage() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
-  void GenerateFieldInfo(io::Printer* printer,
-                         std::vector<uint16_t>* output) const;
-  void GenerateKotlinDslMembers(io::Printer* printer) const;
+                    ~ImmutableMapFieldLiteGenerator();
 
-  std::string GetBoxedType() const;
+                    // implements ImmutableFieldLiteGenerator ------------------------------------
+                    int GetNumBitsForMessage() const;
 
- private:
-  const FieldDescriptor* descriptor_;
-  std::map<std::string, std::string> variables_;
-  Context* context_;
-  ClassNameResolver* name_resolver_;
-};
+                    void GenerateInterfaceMembers(io::Printer *printer) const;
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateMembers(io::Printer *printer) const;
+
+                    void GenerateBuilderMembers(io::Printer *printer) const;
+
+                    void GenerateInitializationCode(io::Printer *printer) const;
+
+                    void GenerateFieldInfo(io::Printer *printer,
+                                           std::vector<uint16_t> *output) const;
+
+                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+
+                    std::string GetBoxedType() const;
+
+                private:
+                    const FieldDescriptor *descriptor_;
+                    std::map<std::string, std::string> variables_;
+                    Context *context_;
+                    ClassNameResolver *name_resolver_;
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_MAP_FIELD_LITE_H__

@@ -39,23 +39,23 @@
 #include <google/protobuf/descriptor.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace cpp {
+    namespace protobuf {
+        namespace compiler {
+            namespace cpp {
 
 // Provides an abstract interface to optimize message layout
 // by rearranging the fields of a message.
-class MessageLayoutHelper {
- public:
-  virtual ~MessageLayoutHelper() {}
+                class MessageLayoutHelper {
+                public:
+                    virtual ~MessageLayoutHelper() {}
 
-  virtual void OptimizeLayout(std::vector<const FieldDescriptor*>* fields,
-                              const Options& options) = 0;
-};
+                    virtual void OptimizeLayout(std::vector<const FieldDescriptor *> *fields,
+                                                const Options &options) = 0;
+                };
 
-}  // namespace cpp
-}  // namespace compiler
-}  // namespace protobuf
+            }  // namespace cpp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_MESSAGE_LAYOUT_HELPER_H__

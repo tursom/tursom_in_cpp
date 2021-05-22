@@ -37,32 +37,41 @@
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {
-namespace protobuf {
-namespace util {
-namespace converter {
+    namespace protobuf {
+        namespace util {
+            namespace converter {
 
-class MockErrorListener : public ErrorListener {
- public:
-  MockErrorListener() {}
-  virtual ~MockErrorListener() {}
+                class MockErrorListener : public ErrorListener {
+                public:
+                    MockErrorListener() {}
 
-  MOCK_METHOD(void, InvalidName,
-              (const LocationTrackerInterface& loc,
-               StringPiece unknown_name, StringPiece message),
-              (override));
-  MOCK_METHOD(void, InvalidValue,
-              (const LocationTrackerInterface& loc, StringPiece type_name,
-               StringPiece value),
-              (override));
-  MOCK_METHOD(void, MissingField,
-              (const LocationTrackerInterface& loc,
-               StringPiece missing_name),
-              (override));
-};
+                    virtual ~MockErrorListener() {}
 
-}  // namespace converter
-}  // namespace util
-}  // namespace protobuf
+                    MOCK_METHOD(void, InvalidName,
+                            (const LocationTrackerInterface &loc,
+                             StringPiece unknown_name, StringPiece message),
+                    (override)
+
+                    );
+
+                    MOCK_METHOD(void, InvalidValue,
+                            (const LocationTrackerInterface &loc, StringPiece type_name,
+                             StringPiece value),
+                    (override)
+
+                    );
+
+                    MOCK_METHOD(void, MissingField,
+                            (const LocationTrackerInterface &loc,
+                             StringPiece missing_name),
+                    (override)
+
+                    );
+                };
+
+            }  // namespace converter
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_UTIL_CONVERTER_MOCK_ERROR_LISTENER_H__

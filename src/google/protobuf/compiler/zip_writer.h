@@ -37,29 +37,31 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
+    namespace protobuf {
+        namespace compiler {
 
-class ZipWriter {
- public:
-  ZipWriter(io::ZeroCopyOutputStream* raw_output);
-  ~ZipWriter();
+            class ZipWriter {
+            public:
+                ZipWriter(io::ZeroCopyOutputStream *raw_output);
 
-  bool Write(const std::string& filename, const std::string& contents);
-  bool WriteDirectory();
+                ~ZipWriter();
 
- private:
-  struct FileInfo {
-    std::string name;
-    uint32_t offset;
-    uint32_t size;
-    uint32_t crc32;
-  };
+                bool Write(const std::string &filename, const std::string &contents);
 
-  io::ZeroCopyOutputStream* raw_output_;
-  std::vector<FileInfo> files_;
-};
+                bool WriteDirectory();
 
-}  // namespace compiler
-}  // namespace protobuf
+            private:
+                struct FileInfo {
+                    std::string name;
+                    uint32_t offset;
+                    uint32_t size;
+                    uint32_t crc32;
+                };
+
+                io::ZeroCopyOutputStream *raw_output_;
+                std::vector<FileInfo> files_;
+            };
+
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google

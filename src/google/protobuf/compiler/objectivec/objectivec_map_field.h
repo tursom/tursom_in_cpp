@@ -36,36 +36,39 @@
 #include <google/protobuf/compiler/objectivec/objectivec_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace objectivec {
+    namespace protobuf {
+        namespace compiler {
+            namespace objectivec {
 
-class MapFieldGenerator : public RepeatedFieldGenerator {
-  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
-                                              const Options& options);
+                class MapFieldGenerator : public RepeatedFieldGenerator {
+                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
+                                                                const Options &options);
 
- public:
-  virtual void FinishInitialization(void);
+                public:
+                    virtual void FinishInitialization(void);
 
-  MapFieldGenerator(const MapFieldGenerator&) = delete;
-  MapFieldGenerator& operator=(const MapFieldGenerator&) = delete;
+                    MapFieldGenerator(const MapFieldGenerator &) = delete;
 
- protected:
-  MapFieldGenerator(const FieldDescriptor* descriptor, const Options& options);
-  virtual ~MapFieldGenerator();
+                    MapFieldGenerator &operator=(const MapFieldGenerator &) = delete;
 
-  virtual void DetermineObjectiveCClassDefinitions(
-      std::set<std::string>* fwd_decls) const;
-  virtual void DetermineForwardDeclarations(
-      std::set<std::string>* fwd_decls) const;
+                protected:
+                    MapFieldGenerator(const FieldDescriptor *descriptor, const Options &options);
 
- private:
-  std::unique_ptr<FieldGenerator> value_field_generator_;
-};
+                    virtual ~MapFieldGenerator();
 
-}  // namespace objectivec
-}  // namespace compiler
-}  // namespace protobuf
+                    virtual void DetermineObjectiveCClassDefinitions(
+                            std::set<std::string> *fwd_decls) const;
+
+                    virtual void DetermineForwardDeclarations(
+                            std::set<std::string> *fwd_decls) const;
+
+                private:
+                    std::unique_ptr<FieldGenerator> value_field_generator_;
+                };
+
+            }  // namespace objectivec
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_MAP_FIELD_H__

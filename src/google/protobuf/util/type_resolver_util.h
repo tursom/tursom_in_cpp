@@ -36,20 +36,20 @@
 #include <string>
 
 namespace google {
-namespace protobuf {
-class DescriptorPool;
-namespace util {
-class TypeResolver;
+    namespace protobuf {
+        class DescriptorPool;
+        namespace util {
+            class TypeResolver;
 
 #include <google/protobuf/port_def.inc>
 
 // Creates a TypeResolver that serves type information in the given descriptor
 // pool. Caller takes ownership of the returned TypeResolver.
-PROTOBUF_EXPORT TypeResolver* NewTypeResolverForDescriptorPool(
-    const std::string& url_prefix, const DescriptorPool* pool);
+            PROTOBUF_EXPORT TypeResolver *NewTypeResolverForDescriptorPool(
+                    const std::string &url_prefix, const DescriptorPool *pool);
 
-}  // namespace util
-}  // namespace protobuf
+        }  // namespace util
+    }  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

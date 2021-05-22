@@ -40,138 +40,181 @@
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
-class Context;            // context.h
-class ClassNameResolver;  // name_resolver.h
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
+                class Context;            // context.h
+                class ClassNameResolver;  // name_resolver.h
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace java {
+    namespace protobuf {
+        namespace compiler {
+            namespace java {
 
-class ImmutableMessageFieldGenerator : public ImmutableFieldGenerator {
- public:
-  explicit ImmutableMessageFieldGenerator(const FieldDescriptor* descriptor,
-                                          int messageBitIndex,
-                                          int builderBitIndex,
-                                          Context* context);
-  ~ImmutableMessageFieldGenerator();
+                class ImmutableMessageFieldGenerator : public ImmutableFieldGenerator {
+                public:
+                    explicit ImmutableMessageFieldGenerator(const FieldDescriptor *descriptor,
+                                                            int messageBitIndex,
+                                                            int builderBitIndex,
+                                                            Context *context);
 
-  // implements ImmutableFieldGenerator
-  // ---------------------------------------
-  int GetNumBitsForMessage() const;
-  int GetNumBitsForBuilder() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
-  void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateParsingDoneCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
-  void GenerateFieldBuilderInitializationCode(io::Printer* printer) const;
-  void GenerateEqualsCode(io::Printer* printer) const;
-  void GenerateHashCode(io::Printer* printer) const;
-  void GenerateKotlinDslMembers(io::Printer* printer) const;
+                    ~ImmutableMessageFieldGenerator();
 
-  std::string GetBoxedType() const;
+                    // implements ImmutableFieldGenerator
+                    // ---------------------------------------
+                    int GetNumBitsForMessage() const;
 
- protected:
-  const FieldDescriptor* descriptor_;
-  std::map<std::string, std::string> variables_;
-  ClassNameResolver* name_resolver_;
+                    int GetNumBitsForBuilder() const;
 
-  void PrintNestedBuilderCondition(io::Printer* printer,
-                                   const char* regular_case,
-                                   const char* nested_builder_case) const;
-  void PrintNestedBuilderFunction(io::Printer* printer,
-                                  const char* method_prototype,
-                                  const char* regular_case,
-                                  const char* nested_builder_case,
-                                  const char* trailing_code) const;
+                    void GenerateInterfaceMembers(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageFieldGenerator);
-};
+                    void GenerateMembers(io::Printer *printer) const;
 
-class ImmutableMessageOneofFieldGenerator
-    : public ImmutableMessageFieldGenerator {
- public:
-  ImmutableMessageOneofFieldGenerator(const FieldDescriptor* descriptor,
-                                      int messageBitIndex, int builderBitIndex,
-                                      Context* context);
-  ~ImmutableMessageOneofFieldGenerator();
+                    void GenerateBuilderMembers(io::Printer *printer) const;
 
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
+                    void GenerateInitializationCode(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageOneofFieldGenerator);
-};
+                    void GenerateBuilderClearCode(io::Printer *printer) const;
 
-class RepeatedImmutableMessageFieldGenerator : public ImmutableFieldGenerator {
- public:
-  explicit RepeatedImmutableMessageFieldGenerator(
-      const FieldDescriptor* descriptor, int messageBitIndex,
-      int builderBitIndex, Context* context);
-  ~RepeatedImmutableMessageFieldGenerator();
+                    void GenerateMergingCode(io::Printer *printer) const;
 
-  // implements ImmutableFieldGenerator ---------------------------------------
-  int GetNumBitsForMessage() const;
-  int GetNumBitsForBuilder() const;
-  void GenerateInterfaceMembers(io::Printer* printer) const;
-  void GenerateMembers(io::Printer* printer) const;
-  void GenerateBuilderMembers(io::Printer* printer) const;
-  void GenerateInitializationCode(io::Printer* printer) const;
-  void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateParsingCode(io::Printer* printer) const;
-  void GenerateParsingDoneCode(io::Printer* printer) const;
-  void GenerateSerializationCode(io::Printer* printer) const;
-  void GenerateSerializedSizeCode(io::Printer* printer) const;
-  void GenerateFieldBuilderInitializationCode(io::Printer* printer) const;
-  void GenerateEqualsCode(io::Printer* printer) const;
-  void GenerateHashCode(io::Printer* printer) const;
-  void GenerateKotlinDslMembers(io::Printer* printer) const;
+                    void GenerateBuildingCode(io::Printer *printer) const;
 
-  std::string GetBoxedType() const;
+                    void GenerateParsingCode(io::Printer *printer) const;
 
- protected:
-  const FieldDescriptor* descriptor_;
-  std::map<std::string, std::string> variables_;
-  ClassNameResolver* name_resolver_;
+                    void GenerateParsingDoneCode(io::Printer *printer) const;
 
-  void PrintNestedBuilderCondition(io::Printer* printer,
-                                   const char* regular_case,
-                                   const char* nested_builder_case) const;
-  void PrintNestedBuilderFunction(io::Printer* printer,
-                                  const char* method_prototype,
-                                  const char* regular_case,
-                                  const char* nested_builder_case,
-                                  const char* trailing_code) const;
+                    void GenerateSerializationCode(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableMessageFieldGenerator);
-};
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
 
-}  // namespace java
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateFieldBuilderInitializationCode(io::Printer *printer) const;
+
+                    void GenerateEqualsCode(io::Printer *printer) const;
+
+                    void GenerateHashCode(io::Printer *printer) const;
+
+                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+
+                    std::string GetBoxedType() const;
+
+                protected:
+                    const FieldDescriptor *descriptor_;
+                    std::map<std::string, std::string> variables_;
+                    ClassNameResolver *name_resolver_;
+
+                    void PrintNestedBuilderCondition(io::Printer *printer,
+                                                     const char *regular_case,
+                                                     const char *nested_builder_case) const;
+
+                    void PrintNestedBuilderFunction(io::Printer *printer,
+                                                    const char *method_prototype,
+                                                    const char *regular_case,
+                                                    const char *nested_builder_case,
+                                                    const char *trailing_code) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageFieldGenerator);
+                };
+
+                class ImmutableMessageOneofFieldGenerator
+                        : public ImmutableMessageFieldGenerator {
+                public:
+                    ImmutableMessageOneofFieldGenerator(const FieldDescriptor *descriptor,
+                                                        int messageBitIndex, int builderBitIndex,
+                                                        Context *context);
+
+                    ~ImmutableMessageOneofFieldGenerator();
+
+                    void GenerateMembers(io::Printer *printer) const;
+
+                    void GenerateBuilderMembers(io::Printer *printer) const;
+
+                    void GenerateBuildingCode(io::Printer *printer) const;
+
+                    void GenerateMergingCode(io::Printer *printer) const;
+
+                    void GenerateParsingCode(io::Printer *printer) const;
+
+                    void GenerateSerializationCode(io::Printer *printer) const;
+
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageOneofFieldGenerator);
+                };
+
+                class RepeatedImmutableMessageFieldGenerator : public ImmutableFieldGenerator {
+                public:
+                    explicit RepeatedImmutableMessageFieldGenerator(
+                            const FieldDescriptor *descriptor, int messageBitIndex,
+                            int builderBitIndex, Context *context);
+
+                    ~RepeatedImmutableMessageFieldGenerator();
+
+                    // implements ImmutableFieldGenerator ---------------------------------------
+                    int GetNumBitsForMessage() const;
+
+                    int GetNumBitsForBuilder() const;
+
+                    void GenerateInterfaceMembers(io::Printer *printer) const;
+
+                    void GenerateMembers(io::Printer *printer) const;
+
+                    void GenerateBuilderMembers(io::Printer *printer) const;
+
+                    void GenerateInitializationCode(io::Printer *printer) const;
+
+                    void GenerateBuilderClearCode(io::Printer *printer) const;
+
+                    void GenerateMergingCode(io::Printer *printer) const;
+
+                    void GenerateBuildingCode(io::Printer *printer) const;
+
+                    void GenerateParsingCode(io::Printer *printer) const;
+
+                    void GenerateParsingDoneCode(io::Printer *printer) const;
+
+                    void GenerateSerializationCode(io::Printer *printer) const;
+
+                    void GenerateSerializedSizeCode(io::Printer *printer) const;
+
+                    void GenerateFieldBuilderInitializationCode(io::Printer *printer) const;
+
+                    void GenerateEqualsCode(io::Printer *printer) const;
+
+                    void GenerateHashCode(io::Printer *printer) const;
+
+                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+
+                    std::string GetBoxedType() const;
+
+                protected:
+                    const FieldDescriptor *descriptor_;
+                    std::map<std::string, std::string> variables_;
+                    ClassNameResolver *name_resolver_;
+
+                    void PrintNestedBuilderCondition(io::Printer *printer,
+                                                     const char *regular_case,
+                                                     const char *nested_builder_case) const;
+
+                    void PrintNestedBuilderFunction(io::Printer *printer,
+                                                    const char *method_prototype,
+                                                    const char *regular_case,
+                                                    const char *nested_builder_case,
+                                                    const char *trailing_code) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableMessageFieldGenerator);
+                };
+
+            }  // namespace java
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_MESSAGE_FIELD_H__

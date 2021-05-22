@@ -40,75 +40,101 @@
 #include <google/protobuf/compiler/cpp/cpp_field.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace cpp {
+    namespace protobuf {
+        namespace compiler {
+            namespace cpp {
 
-class PrimitiveFieldGenerator : public FieldGenerator {
- public:
-  PrimitiveFieldGenerator(const FieldDescriptor* descriptor,
-                          const Options& options);
-  ~PrimitiveFieldGenerator();
+                class PrimitiveFieldGenerator : public FieldGenerator {
+                public:
+                    PrimitiveFieldGenerator(const FieldDescriptor *descriptor,
+                                            const Options &options);
 
-  // implements FieldGenerator ---------------------------------------
-  void GeneratePrivateMembers(io::Printer* printer) const;
-  void GenerateAccessorDeclarations(io::Printer* printer) const;
-  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
-  void GenerateClearingCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateSwappingCode(io::Printer* printer) const;
-  void GenerateConstructorCode(io::Printer* printer) const;
-  void GenerateCopyConstructorCode(io::Printer* printer) const;
-  void GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const;
-  void GenerateByteSize(io::Printer* printer) const;
-  void GenerateConstinitInitializer(io::Printer* printer) const;
+                    ~PrimitiveFieldGenerator();
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PrimitiveFieldGenerator);
-};
+                    // implements FieldGenerator ---------------------------------------
+                    void GeneratePrivateMembers(io::Printer *printer) const;
 
-class PrimitiveOneofFieldGenerator : public PrimitiveFieldGenerator {
- public:
-  PrimitiveOneofFieldGenerator(const FieldDescriptor* descriptor,
-                               const Options& options);
-  ~PrimitiveOneofFieldGenerator();
+                    void GenerateAccessorDeclarations(io::Printer *printer) const;
 
-  // implements FieldGenerator ---------------------------------------
-  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
-  void GenerateClearingCode(io::Printer* printer) const;
-  void GenerateSwappingCode(io::Printer* printer) const;
-  void GenerateConstructorCode(io::Printer* printer) const;
+                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PrimitiveOneofFieldGenerator);
-};
+                    void GenerateClearingCode(io::Printer *printer) const;
 
-class RepeatedPrimitiveFieldGenerator : public FieldGenerator {
- public:
-  RepeatedPrimitiveFieldGenerator(const FieldDescriptor* descriptor,
-                                  const Options& options);
-  ~RepeatedPrimitiveFieldGenerator();
+                    void GenerateMergingCode(io::Printer *printer) const;
 
-  // implements FieldGenerator ---------------------------------------
-  void GeneratePrivateMembers(io::Printer* printer) const;
-  void GenerateAccessorDeclarations(io::Printer* printer) const;
-  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
-  void GenerateClearingCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
-  void GenerateSwappingCode(io::Printer* printer) const;
-  void GenerateConstructorCode(io::Printer* printer) const;
-  void GenerateCopyConstructorCode(io::Printer* printer) const;
-  void GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const;
-  void GenerateByteSize(io::Printer* printer) const;
-  void GenerateConstinitInitializer(io::Printer* printer) const;
+                    void GenerateSwappingCode(io::Printer *printer) const;
 
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedPrimitiveFieldGenerator);
-};
+                    void GenerateConstructorCode(io::Printer *printer) const;
 
-}  // namespace cpp
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateCopyConstructorCode(io::Printer *printer) const;
+
+                    void GenerateSerializeWithCachedSizesToArray(io::Printer *printer) const;
+
+                    void GenerateByteSize(io::Printer *printer) const;
+
+                    void GenerateConstinitInitializer(io::Printer *printer) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PrimitiveFieldGenerator);
+                };
+
+                class PrimitiveOneofFieldGenerator : public PrimitiveFieldGenerator {
+                public:
+                    PrimitiveOneofFieldGenerator(const FieldDescriptor *descriptor,
+                                                 const Options &options);
+
+                    ~PrimitiveOneofFieldGenerator();
+
+                    // implements FieldGenerator ---------------------------------------
+                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
+
+                    void GenerateClearingCode(io::Printer *printer) const;
+
+                    void GenerateSwappingCode(io::Printer *printer) const;
+
+                    void GenerateConstructorCode(io::Printer *printer) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(PrimitiveOneofFieldGenerator);
+                };
+
+                class RepeatedPrimitiveFieldGenerator : public FieldGenerator {
+                public:
+                    RepeatedPrimitiveFieldGenerator(const FieldDescriptor *descriptor,
+                                                    const Options &options);
+
+                    ~RepeatedPrimitiveFieldGenerator();
+
+                    // implements FieldGenerator ---------------------------------------
+                    void GeneratePrivateMembers(io::Printer *printer) const;
+
+                    void GenerateAccessorDeclarations(io::Printer *printer) const;
+
+                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
+
+                    void GenerateClearingCode(io::Printer *printer) const;
+
+                    void GenerateMergingCode(io::Printer *printer) const;
+
+                    void GenerateSwappingCode(io::Printer *printer) const;
+
+                    void GenerateConstructorCode(io::Printer *printer) const;
+
+                    void GenerateCopyConstructorCode(io::Printer *printer) const;
+
+                    void GenerateSerializeWithCachedSizesToArray(io::Printer *printer) const;
+
+                    void GenerateByteSize(io::Printer *printer) const;
+
+                    void GenerateConstinitInitializer(io::Printer *printer) const;
+
+                private:
+                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedPrimitiveFieldGenerator);
+                };
+
+            }  // namespace cpp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_PRIMITIVE_FIELD_H__

@@ -41,59 +41,70 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace objectivec {
+    namespace protobuf {
+        namespace compiler {
+            namespace objectivec {
 
-class ExtensionGenerator;
-class EnumGenerator;
+                class ExtensionGenerator;
 
-class MessageGenerator {
- public:
-  MessageGenerator(const std::string& root_classname,
-                   const Descriptor* descriptor, const Options& options);
-  ~MessageGenerator();
+                class EnumGenerator;
 
-  MessageGenerator(const MessageGenerator&) = delete;
-  MessageGenerator& operator=(const MessageGenerator&) = delete;
+                class MessageGenerator {
+                public:
+                    MessageGenerator(const std::string &root_classname,
+                                     const Descriptor *descriptor, const Options &options);
 
-  void GenerateStaticVariablesInitialization(io::Printer* printer);
-  void GenerateEnumHeader(io::Printer* printer);
-  void GenerateMessageHeader(io::Printer* printer);
-  void GenerateSource(io::Printer* printer);
-  void GenerateExtensionRegistrationSource(io::Printer* printer);
-  void DetermineObjectiveCClassDefinitions(std::set<std::string>* fwd_decls);
-  void DetermineForwardDeclarations(std::set<std::string>* fwd_decls);
+                    ~MessageGenerator();
 
-  // Checks if the message or a nested message includes a oneof definition.
-  bool IncludesOneOfDefinition() const;
+                    MessageGenerator(const MessageGenerator &) = delete;
 
- private:
-  void GenerateParseFromMethodsHeader(io::Printer* printer);
+                    MessageGenerator &operator=(const MessageGenerator &) = delete;
 
-  void GenerateSerializeOneFieldSource(io::Printer* printer,
-                                       const FieldDescriptor* field);
-  void GenerateSerializeOneExtensionRangeSource(
-      io::Printer* printer, const Descriptor::ExtensionRange* range);
+                    void GenerateStaticVariablesInitialization(io::Printer *printer);
 
-  void GenerateMessageDescriptionSource(io::Printer* printer);
-  void GenerateDescriptionOneFieldSource(io::Printer* printer,
-                                         const FieldDescriptor* field);
+                    void GenerateEnumHeader(io::Printer *printer);
 
-  const std::string root_classname_;
-  const Descriptor* descriptor_;
-  FieldGeneratorMap field_generators_;
-  const std::string class_name_;
-  const std::string deprecated_attribute_;
-  std::vector<std::unique_ptr<ExtensionGenerator>> extension_generators_;
-  std::vector<std::unique_ptr<EnumGenerator>> enum_generators_;
-  std::vector<std::unique_ptr<MessageGenerator>> nested_message_generators_;
-  std::vector<std::unique_ptr<OneofGenerator>> oneof_generators_;
-};
+                    void GenerateMessageHeader(io::Printer *printer);
 
-}  // namespace objectivec
-}  // namespace compiler
-}  // namespace protobuf
+                    void GenerateSource(io::Printer *printer);
+
+                    void GenerateExtensionRegistrationSource(io::Printer *printer);
+
+                    void DetermineObjectiveCClassDefinitions(std::set<std::string> *fwd_decls);
+
+                    void DetermineForwardDeclarations(std::set<std::string> *fwd_decls);
+
+                    // Checks if the message or a nested message includes a oneof definition.
+                    bool IncludesOneOfDefinition() const;
+
+                private:
+                    void GenerateParseFromMethodsHeader(io::Printer *printer);
+
+                    void GenerateSerializeOneFieldSource(io::Printer *printer,
+                                                         const FieldDescriptor *field);
+
+                    void GenerateSerializeOneExtensionRangeSource(
+                            io::Printer *printer, const Descriptor::ExtensionRange *range);
+
+                    void GenerateMessageDescriptionSource(io::Printer *printer);
+
+                    void GenerateDescriptionOneFieldSource(io::Printer *printer,
+                                                           const FieldDescriptor *field);
+
+                    const std::string root_classname_;
+                    const Descriptor *descriptor_;
+                    FieldGeneratorMap field_generators_;
+                    const std::string class_name_;
+                    const std::string deprecated_attribute_;
+                    std::vector<std::unique_ptr<ExtensionGenerator>> extension_generators_;
+                    std::vector<std::unique_ptr<EnumGenerator>> enum_generators_;
+                    std::vector<std::unique_ptr<MessageGenerator>> nested_message_generators_;
+                    std::vector<std::unique_ptr<OneofGenerator>> oneof_generators_;
+                };
+
+            }  // namespace objectivec
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_MESSAGE_H__

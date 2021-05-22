@@ -37,35 +37,38 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-namespace protobuf {
-namespace compiler {
-namespace csharp {
+    namespace protobuf {
+        namespace compiler {
+            namespace csharp {
 
-struct Options;
+                struct Options;
 
-class SourceGeneratorBase {
- protected:
-  SourceGeneratorBase(const FileDescriptor* descriptor, const Options* options);
-  virtual ~SourceGeneratorBase();
+                class SourceGeneratorBase {
+                protected:
+                    SourceGeneratorBase(const FileDescriptor *descriptor, const Options *options);
 
-  SourceGeneratorBase(const SourceGeneratorBase&) = delete;
-  SourceGeneratorBase& operator=(const SourceGeneratorBase&) = delete;
+                    virtual ~SourceGeneratorBase();
 
-  std::string class_access_level();
-  const Options* options();
+                    SourceGeneratorBase(const SourceGeneratorBase &) = delete;
 
-  // Write any attributes used to decorate generated function members (methods and properties).
-  // Should not be used to decorate types.
-  void WriteGeneratedCodeAttributes(io::Printer* printer);
+                    SourceGeneratorBase &operator=(const SourceGeneratorBase &) = delete;
 
- private:
-  const FileDescriptor* descriptor_;
-  const Options *options_;
-};
+                    std::string class_access_level();
 
-}  // namespace csharp
-}  // namespace compiler
-}  // namespace protobuf
+                    const Options *options();
+
+                    // Write any attributes used to decorate generated function members (methods and properties).
+                    // Should not be used to decorate types.
+                    void WriteGeneratedCodeAttributes(io::Printer *printer);
+
+                private:
+                    const FileDescriptor *descriptor_;
+                    const Options *options_;
+                };
+
+            }  // namespace csharp
+        }  // namespace compiler
+    }  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_SOURCE_GENERATOR_BASE_H__
