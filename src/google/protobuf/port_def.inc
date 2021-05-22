@@ -92,7 +92,7 @@
 // Portable check for GCC minimum version:
 // https://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
 #if defined(__GNUC__) && defined(__GNUC_MINOR__) \
- && defined(__GNUC_PATCHLEVEL__)
+    && defined(__GNUC_PATCHLEVEL__)
 #  define PROTOBUF_GNUC_MIN(x, y) \
   (__GNUC__ > (x) || __GNUC__ == (x) && __GNUC_MINOR__ >= (y))
 #else

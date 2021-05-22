@@ -32,7 +32,7 @@
 #define GOOGLE_PROTOBUF_MACROS_H__
 
 namespace google {
-    namespace protobuf {
+namespace protobuf {
 
 #undef GOOGLE_DISALLOW_EVIL_CONSTRUCTORS
 #define GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(TypeName) \
@@ -87,7 +87,7 @@ namespace google {
   ((sizeof(a) / sizeof(*(a))) / \
    static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_MACROS_H__

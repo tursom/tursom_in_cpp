@@ -44,70 +44,69 @@
 #include <google/protobuf/compiler/csharp/csharp_reflection_class.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace csharp {
+namespace protobuf {
+namespace compiler {
+namespace csharp {
 
-                Generator::Generator() {}
+Generator::Generator() {}
+Generator::~Generator() {}
 
-                Generator::~Generator() {}
+uint64_t Generator::GetSupportedFeatures() const {
+  return CodeGenerator::Feature::FEATURE_PROTO3_OPTIONAL;
+}
 
-                uint64_t Generator::GetSupportedFeatures() const {
-                    return CodeGenerator::Feature::FEATURE_PROTO3_OPTIONAL;
-                }
+void GenerateFile(const FileDescriptor* file, io::Printer* printer,
+                  const Options* options) {
+  ReflectionClassGenerator reflectionClassGenerator(file, options);
+  reflectionClassGenerator.Generate(printer);
+}
 
-                void GenerateFile(const FileDescriptor *file, io::Printer *printer,
-                                  const Options *options) {
-                    ReflectionClassGenerator reflectionClassGenerator(file, options);
-                    reflectionClassGenerator.Generate(printer);
-                }
+bool Generator::Generate(const FileDescriptor* file,
+                         const std::string& parameter,
+                         GeneratorContext* generator_context,
+                         std::string* error) const {
+  std::vector<std::pair<std::string, std::string> > options;
+  ParseGeneratorParameter(parameter, &options);
 
-                bool Generator::Generate(const FileDescriptor *file,
-                                         const std::string &parameter,
-                                         GeneratorContext *generator_context,
-                                         std::string *error) const {
-                    std::vector<std::pair<std::string, std::string> > options;
-                    ParseGeneratorParameter(parameter, &options);
+  struct Options cli_options;
 
-                    struct Options cli_options;
+  for (int i = 0; i < options.size(); i++) {
+    if (options[i].first == "file_extension") {
+      cli_options.file_extension = options[i].second;
+    } else if (options[i].first == "base_namespace") {
+      cli_options.base_namespace = options[i].second;
+      cli_options.base_namespace_specified = true;
+    } else if (options[i].first == "internal_access") {
+      cli_options.internal_access = true;
+    } else if (options[i].first == "serializable") {
+      cli_options.serializable = true;
+    } else {
+      *error = "Unknown generator option: " + options[i].first;
+      return false;
+    }
+  }
 
-                    for (int i = 0; i < options.size(); i++) {
-                        if (options[i].first == "file_extension") {
-                            cli_options.file_extension = options[i].second;
-                        } else if (options[i].first == "base_namespace") {
-                            cli_options.base_namespace = options[i].second;
-                            cli_options.base_namespace_specified = true;
-                        } else if (options[i].first == "internal_access") {
-                            cli_options.internal_access = true;
-                        } else if (options[i].first == "serializable") {
-                            cli_options.serializable = true;
-                        } else {
-                            *error = "Unknown generator option: " + options[i].first;
-                            return false;
-                        }
-                    }
+  std::string filename_error = "";
+  std::string filename = GetOutputFile(file,
+      cli_options.file_extension,
+      cli_options.base_namespace_specified,
+      cli_options.base_namespace,
+      &filename_error);
 
-                    std::string filename_error = "";
-                    std::string filename = GetOutputFile(file,
-                                                         cli_options.file_extension,
-                                                         cli_options.base_namespace_specified,
-                                                         cli_options.base_namespace,
-                                                         &filename_error);
+  if (filename.empty()) {
+    *error = filename_error;
+    return false;
+  }
+  std::unique_ptr<io::ZeroCopyOutputStream> output(
+      generator_context->Open(filename));
+  io::Printer printer(output.get(), '$');
 
-                    if (filename.empty()) {
-                        *error = filename_error;
-                        return false;
-                    }
-                    std::unique_ptr<io::ZeroCopyOutputStream> output(
-                            generator_context->Open(filename));
-                    io::Printer printer(output.get(), '$');
+  GenerateFile(file, &printer, &cli_options);
 
-                    GenerateFile(file, &printer, &cli_options);
+  return true;
+}
 
-                    return true;
-                }
-
-            }  // namespace csharp
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace csharp
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google

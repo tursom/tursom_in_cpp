@@ -35,13 +35,11 @@
 #include <google/protobuf/service.h>
 
 namespace google {
-    namespace protobuf {
+namespace protobuf {
 
-        Service::~Service() {}
+Service::~Service() {}
+RpcChannel::~RpcChannel() {}
+RpcController::~RpcController() {}
 
-        RpcChannel::~RpcChannel() {}
-
-        RpcController::~RpcController() {}
-
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google

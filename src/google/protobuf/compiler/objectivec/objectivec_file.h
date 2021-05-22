@@ -39,51 +39,46 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace objectivec {
+namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-                class EnumGenerator;
+class EnumGenerator;
+class ExtensionGenerator;
+class MessageGenerator;
 
-                class ExtensionGenerator;
+class FileGenerator {
+ public:
+  FileGenerator(const FileDescriptor* file, const Options& options);
+  ~FileGenerator();
 
-                class MessageGenerator;
+  FileGenerator(const FileGenerator&) = delete;
+  FileGenerator& operator=(const FileGenerator&) = delete;
 
-                class FileGenerator {
-                public:
-                    FileGenerator(const FileDescriptor *file, const Options &options);
+  void GenerateSource(io::Printer* printer);
+  void GenerateHeader(io::Printer* printer);
 
-                    ~FileGenerator();
+  const std::string& RootClassName() const { return root_class_name_; }
 
-                    FileGenerator(const FileGenerator &) = delete;
+ private:
+  const FileDescriptor* file_;
+  std::string root_class_name_;
+  bool is_bundled_proto_;
 
-                    FileGenerator &operator=(const FileGenerator &) = delete;
+  std::vector<std::unique_ptr<EnumGenerator>> enum_generators_;
+  std::vector<std::unique_ptr<MessageGenerator>> message_generators_;
+  std::vector<std::unique_ptr<ExtensionGenerator>> extension_generators_;
 
-                    void GenerateSource(io::Printer *printer);
+  const Options options_;
 
-                    void GenerateHeader(io::Printer *printer);
+  void PrintFileRuntimePreamble(
+      io::Printer* printer,
+      const std::vector<std::string>& headers_to_import) const;
+};
 
-                    const std::string &RootClassName() const { return root_class_name_; }
-
-                private:
-                    const FileDescriptor *file_;
-                    std::string root_class_name_;
-                    bool is_bundled_proto_;
-
-                    std::vector<std::unique_ptr<EnumGenerator>> enum_generators_;
-                    std::vector<std::unique_ptr<MessageGenerator>> message_generators_;
-                    std::vector<std::unique_ptr<ExtensionGenerator>> extension_generators_;
-
-                    const Options options_;
-
-                    void PrintFileRuntimePreamble(
-                            io::Printer *printer,
-                            const std::vector<std::string> &headers_to_import) const;
-                };
-
-            }  // namespace objectivec
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace objectivec
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_FILE_H__

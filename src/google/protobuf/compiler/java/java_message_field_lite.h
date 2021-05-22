@@ -42,116 +42,99 @@
 #include <google/protobuf/compiler/java/java_field.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace java {
-                class Context;            // context.h
-                class ClassNameResolver;  // name_resolver.h
-            }  // namespace java
-        }  // namespace compiler
-    }  // namespace protobuf
+namespace protobuf {
+namespace compiler {
+namespace java {
+class Context;            // context.h
+class ClassNameResolver;  // name_resolver.h
+}  // namespace java
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace java {
+namespace protobuf {
+namespace compiler {
+namespace java {
 
-                class ImmutableMessageFieldLiteGenerator : public ImmutableFieldLiteGenerator {
-                public:
-                    explicit ImmutableMessageFieldLiteGenerator(const FieldDescriptor *descriptor,
-                                                                int messageBitIndex,
-                                                                Context *context);
+class ImmutableMessageFieldLiteGenerator : public ImmutableFieldLiteGenerator {
+ public:
+  explicit ImmutableMessageFieldLiteGenerator(const FieldDescriptor* descriptor,
+                                              int messageBitIndex,
+                                              Context* context);
+  ~ImmutableMessageFieldLiteGenerator();
 
-                    ~ImmutableMessageFieldLiteGenerator();
+  // implements ImmutableFieldLiteGenerator
+  // ------------------------------------
+  int GetNumBitsForMessage() const;
+  void GenerateInterfaceMembers(io::Printer* printer) const;
+  void GenerateMembers(io::Printer* printer) const;
+  void GenerateBuilderMembers(io::Printer* printer) const;
+  void GenerateInitializationCode(io::Printer* printer) const;
+  void GenerateFieldInfo(io::Printer* printer,
+                         std::vector<uint16_t>* output) const;
+  void GenerateKotlinDslMembers(io::Printer* printer) const;
 
-                    // implements ImmutableFieldLiteGenerator
-                    // ------------------------------------
-                    int GetNumBitsForMessage() const;
+  std::string GetBoxedType() const;
 
-                    void GenerateInterfaceMembers(io::Printer *printer) const;
+ protected:
+  const FieldDescriptor* descriptor_;
+  std::map<std::string, std::string> variables_;
+  const int messageBitIndex_;
+  ClassNameResolver* name_resolver_;
 
-                    void GenerateMembers(io::Printer *printer) const;
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageFieldLiteGenerator);
+};
 
-                    void GenerateBuilderMembers(io::Printer *printer) const;
+class ImmutableMessageOneofFieldLiteGenerator
+    : public ImmutableMessageFieldLiteGenerator {
+ public:
+  ImmutableMessageOneofFieldLiteGenerator(const FieldDescriptor* descriptor,
+                                          int messageBitIndex,
+                                          Context* context);
+  ~ImmutableMessageOneofFieldLiteGenerator();
 
-                    void GenerateInitializationCode(io::Printer *printer) const;
+  void GenerateMembers(io::Printer* printer) const;
+  void GenerateBuilderMembers(io::Printer* printer) const;
+  void GenerateFieldInfo(io::Printer* printer,
+                         std::vector<uint16_t>* output) const;
 
-                    void GenerateFieldInfo(io::Printer *printer,
-                                           std::vector<uint16_t> *output) const;
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageOneofFieldLiteGenerator);
+};
 
-                    void GenerateKotlinDslMembers(io::Printer *printer) const;
+class RepeatedImmutableMessageFieldLiteGenerator
+    : public ImmutableFieldLiteGenerator {
+ public:
+  explicit RepeatedImmutableMessageFieldLiteGenerator(
+      const FieldDescriptor* descriptor, int messageBitIndex, Context* context);
+  ~RepeatedImmutableMessageFieldLiteGenerator();
 
-                    std::string GetBoxedType() const;
+  // implements ImmutableFieldLiteGenerator ------------------------------------
+  int GetNumBitsForMessage() const;
+  void GenerateInterfaceMembers(io::Printer* printer) const;
+  void GenerateMembers(io::Printer* printer) const;
+  void GenerateBuilderMembers(io::Printer* printer) const;
+  void GenerateInitializationCode(io::Printer* printer) const;
+  void GenerateFieldInfo(io::Printer* printer,
+                         std::vector<uint16_t>* output) const;
+  void GenerateKotlinDslMembers(io::Printer* printer) const;
 
-                protected:
-                    const FieldDescriptor *descriptor_;
-                    std::map<std::string, std::string> variables_;
-                    const int messageBitIndex_;
-                    ClassNameResolver *name_resolver_;
+  std::string GetBoxedType() const;
 
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageFieldLiteGenerator);
-                };
+ protected:
+  const FieldDescriptor* descriptor_;
+  std::map<std::string, std::string> variables_;
+  ClassNameResolver* name_resolver_;
 
-                class ImmutableMessageOneofFieldLiteGenerator
-                        : public ImmutableMessageFieldLiteGenerator {
-                public:
-                    ImmutableMessageOneofFieldLiteGenerator(const FieldDescriptor *descriptor,
-                                                            int messageBitIndex,
-                                                            Context *context);
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableMessageFieldLiteGenerator);
+};
 
-                    ~ImmutableMessageOneofFieldLiteGenerator();
-
-                    void GenerateMembers(io::Printer *printer) const;
-
-                    void GenerateBuilderMembers(io::Printer *printer) const;
-
-                    void GenerateFieldInfo(io::Printer *printer,
-                                           std::vector<uint16_t> *output) const;
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ImmutableMessageOneofFieldLiteGenerator);
-                };
-
-                class RepeatedImmutableMessageFieldLiteGenerator
-                        : public ImmutableFieldLiteGenerator {
-                public:
-                    explicit RepeatedImmutableMessageFieldLiteGenerator(
-                            const FieldDescriptor *descriptor, int messageBitIndex, Context *context);
-
-                    ~RepeatedImmutableMessageFieldLiteGenerator();
-
-                    // implements ImmutableFieldLiteGenerator ------------------------------------
-                    int GetNumBitsForMessage() const;
-
-                    void GenerateInterfaceMembers(io::Printer *printer) const;
-
-                    void GenerateMembers(io::Printer *printer) const;
-
-                    void GenerateBuilderMembers(io::Printer *printer) const;
-
-                    void GenerateInitializationCode(io::Printer *printer) const;
-
-                    void GenerateFieldInfo(io::Printer *printer,
-                                           std::vector<uint16_t> *output) const;
-
-                    void GenerateKotlinDslMembers(io::Printer *printer) const;
-
-                    std::string GetBoxedType() const;
-
-                protected:
-                    const FieldDescriptor *descriptor_;
-                    std::map<std::string, std::string> variables_;
-                    ClassNameResolver *name_resolver_;
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedImmutableMessageFieldLiteGenerator);
-                };
-
-            }  // namespace java
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace java
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_JAVA_MESSAGE_FIELD_LITE_H__

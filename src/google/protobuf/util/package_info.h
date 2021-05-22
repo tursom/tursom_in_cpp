@@ -34,13 +34,13 @@
 
 namespace google {
 
-    namespace protobuf {
+namespace protobuf {
 
 // Utility classes.
 //
 // This package contains various utilities for message comparison, JSON
 // conversion, well known types, etc.
-        namespace util {}
+namespace util {}
 
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google

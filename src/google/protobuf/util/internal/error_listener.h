@@ -46,63 +46,62 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-    namespace protobuf {
-        namespace util {
-            namespace converter {
+namespace protobuf {
+namespace util {
+namespace converter {
 
 // Interface for error listener.
-                class PROTOBUF_EXPORT ErrorListener {
-                public:
-                    virtual ~ErrorListener() {}
+class PROTOBUF_EXPORT ErrorListener {
+ public:
+  virtual ~ErrorListener() {}
 
-                    // Reports an invalid name at the given location.
-                    virtual void InvalidName(const LocationTrackerInterface &loc,
-                                             StringPiece invalid_name,
-                                             StringPiece message) = 0;
+  // Reports an invalid name at the given location.
+  virtual void InvalidName(const LocationTrackerInterface& loc,
+                           StringPiece invalid_name,
+                           StringPiece message) = 0;
 
-                    // Reports an invalid value for a field.
-                    virtual void InvalidValue(const LocationTrackerInterface &loc,
-                                              StringPiece type_name,
-                                              StringPiece value) = 0;
+  // Reports an invalid value for a field.
+  virtual void InvalidValue(const LocationTrackerInterface& loc,
+                            StringPiece type_name,
+                            StringPiece value) = 0;
 
-                    // Reports a missing required field.
-                    virtual void MissingField(const LocationTrackerInterface &loc,
-                                              StringPiece missing_name) = 0;
+  // Reports a missing required field.
+  virtual void MissingField(const LocationTrackerInterface& loc,
+                            StringPiece missing_name) = 0;
 
-                protected:
-                    ErrorListener() {}
+ protected:
+  ErrorListener() {}
 
-                private:
-                    // Do not add any data members to this class.
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ErrorListener);
-                };
+ private:
+  // Do not add any data members to this class.
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ErrorListener);
+};
 
 // An error listener that ignores all errors.
-                class PROTOBUF_EXPORT NoopErrorListener : public ErrorListener {
-                public:
-                    NoopErrorListener() {}
+class PROTOBUF_EXPORT NoopErrorListener : public ErrorListener {
+ public:
+  NoopErrorListener() {}
+  ~NoopErrorListener() override {}
 
-                    ~NoopErrorListener() override {}
+  void InvalidName(const LocationTrackerInterface& loc,
+                   StringPiece invalid_name,
+                   StringPiece message) override {}
 
-                    void InvalidName(const LocationTrackerInterface &loc,
-                                     StringPiece invalid_name,
-                                     StringPiece message) override {}
+  void InvalidValue(const LocationTrackerInterface& loc,
+                    StringPiece type_name,
+                    StringPiece value) override {}
 
-                    void InvalidValue(const LocationTrackerInterface &loc,
-                                      StringPiece type_name,
-                                      StringPiece value) override {}
+  void MissingField(const LocationTrackerInterface& loc,
+                    StringPiece missing_name) override {}
 
-                    void MissingField(const LocationTrackerInterface &loc,
-                                      StringPiece missing_name) override {}
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(NoopErrorListener);
-                };
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(NoopErrorListener);
+};
 
 
-            }  // namespace converter
-        }  // namespace util
-    }  // namespace protobuf
+}  // namespace converter
+}  // namespace util
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

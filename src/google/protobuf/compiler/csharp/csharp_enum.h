@@ -39,29 +39,27 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace csharp {
+namespace protobuf {
+namespace compiler {
+namespace csharp {
 
-                class EnumGenerator : public SourceGeneratorBase {
-                public:
-                    EnumGenerator(const EnumDescriptor *descriptor, const Options *options);
+class EnumGenerator : public SourceGeneratorBase {
+ public:
+  EnumGenerator(const EnumDescriptor* descriptor, const Options* options);
+  ~EnumGenerator();
 
-                    ~EnumGenerator();
+  EnumGenerator(const EnumGenerator&) = delete;
+  EnumGenerator& operator=(const EnumGenerator&) = delete;
 
-                    EnumGenerator(const EnumGenerator &) = delete;
+  void Generate(io::Printer* printer);
 
-                    EnumGenerator &operator=(const EnumGenerator &) = delete;
+ private:
+  const EnumDescriptor* descriptor_;
+};
 
-                    void Generate(io::Printer *printer);
-
-                private:
-                    const EnumDescriptor *descriptor_;
-                };
-
-            }  // namespace csharp
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace csharp
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_ENUM_H__

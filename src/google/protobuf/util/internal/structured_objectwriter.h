@@ -40,9 +40,9 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-    namespace protobuf {
-        namespace util {
-            namespace converter {
+namespace protobuf {
+namespace util {
+namespace converter {
 
 // An StructuredObjectWriter is an ObjectWriter for writing
 // tree-structured data in a stream of events representing objects
@@ -55,65 +55,64 @@ namespace google {
 // StructuredObjectWriter and its use.
 //
 // Derived classes could be thread-unsafe.
-                class PROTOBUF_EXPORT StructuredObjectWriter : public ObjectWriter {
-                public:
-                    virtual ~StructuredObjectWriter() {}
+class PROTOBUF_EXPORT StructuredObjectWriter : public ObjectWriter {
+ public:
+  virtual ~StructuredObjectWriter() {}
 
-                protected:
-                    // A base element class for subclasses to extend, makes tracking state easier.
-                    //
-                    // StructuredObjectWriter behaves as a visitor. BaseElement represents a node
-                    // in the input tree. Implementation of StructuredObjectWriter should also
-                    // extend BaseElement to keep track of the location in the input tree.
-                    class PROTOBUF_EXPORT BaseElement {
-                    public:
-                        // Takes ownership of the parent Element.
-                        explicit BaseElement(BaseElement *parent)
-                                : parent_(parent),
-                                  level_(parent == nullptr ? 0 : parent->level() + 1) {}
+ protected:
+  // A base element class for subclasses to extend, makes tracking state easier.
+  //
+  // StructuredObjectWriter behaves as a visitor. BaseElement represents a node
+  // in the input tree. Implementation of StructuredObjectWriter should also
+  // extend BaseElement to keep track of the location in the input tree.
+  class PROTOBUF_EXPORT BaseElement {
+   public:
+    // Takes ownership of the parent Element.
+    explicit BaseElement(BaseElement* parent)
+        : parent_(parent),
+          level_(parent == nullptr ? 0 : parent->level() + 1) {}
+    virtual ~BaseElement() {}
 
-                        virtual ~BaseElement() {}
+    // Releases ownership of the parent and returns a pointer to it.
+    template <typename ElementType>
+    ElementType* pop() {
+      return down_cast<ElementType*>(parent_.release());
+    }
 
-                        // Releases ownership of the parent and returns a pointer to it.
-                        template<typename ElementType>
-                        ElementType *pop() {
-                            return down_cast<ElementType *>(parent_.release());
-                        }
+    // Returns true if this element is the root.
+    bool is_root() const { return parent_ == nullptr; }
 
-                        // Returns true if this element is the root.
-                        bool is_root() const { return parent_ == nullptr; }
+    // Returns the number of hops from this element to the root element.
+    int level() const { return level_; }
 
-                        // Returns the number of hops from this element to the root element.
-                        int level() const { return level_; }
+   protected:
+    // Returns pointer to parent element without releasing ownership.
+    virtual BaseElement* parent() const { return parent_.get(); }
 
-                    protected:
-                        // Returns pointer to parent element without releasing ownership.
-                        virtual BaseElement *parent() const { return parent_.get(); }
+   private:
+    // Pointer to the parent Element.
+    std::unique_ptr<BaseElement> parent_;
 
-                    private:
-                        // Pointer to the parent Element.
-                        std::unique_ptr<BaseElement> parent_;
+    // Number of hops to the root Element.
+    // The root Element has nullptr parent_ and a level_ of 0.
+    const int level_;
 
-                        // Number of hops to the root Element.
-                        // The root Element has nullptr parent_ and a level_ of 0.
-                        const int level_;
+    GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(BaseElement);
+  };
 
-                        GOOGLE_DISALLOW_IMPLICIT_CONSTRUCTORS(BaseElement);
-                    };
+  StructuredObjectWriter() {}
 
-                    StructuredObjectWriter() {}
+  // Returns the current element. Used for indentation and name overrides.
+  virtual BaseElement* element() = 0;
 
-                    // Returns the current element. Used for indentation and name overrides.
-                    virtual BaseElement *element() = 0;
+ private:
+  // Do not add any data members to this class.
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StructuredObjectWriter);
+};
 
-                private:
-                    // Do not add any data members to this class.
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StructuredObjectWriter);
-                };
-
-            }  // namespace converter
-        }  // namespace util
-    }  // namespace protobuf
+}  // namespace converter
+}  // namespace util
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

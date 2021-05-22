@@ -38,47 +38,47 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-    namespace protobuf {
-        namespace internal {
+namespace protobuf {
+namespace internal {
 
-            bool AnyMetadata::PackFrom(const Message &message) {
-                return PackFrom(message, kTypeGoogleApisComPrefix);
-            }
+bool AnyMetadata::PackFrom(const Message& message) {
+  return PackFrom(message, kTypeGoogleApisComPrefix);
+}
 
-            bool AnyMetadata::PackFrom(const Message &message,
-                                       StringPiece type_url_prefix) {
-                type_url_->Set(
-                        &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyString(),
-                        GetTypeUrl(message.GetDescriptor()->full_name(), type_url_prefix),
-                        nullptr);
-                return message.SerializeToString(
-                        value_->Mutable(ArenaStringPtr::EmptyDefault{}, nullptr));
-            }
+bool AnyMetadata::PackFrom(const Message& message,
+                           StringPiece type_url_prefix) {
+  type_url_->Set(
+      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyString(),
+      GetTypeUrl(message.GetDescriptor()->full_name(), type_url_prefix),
+      nullptr);
+  return message.SerializeToString(
+      value_->Mutable(ArenaStringPtr::EmptyDefault{}, nullptr));
+}
 
-            bool AnyMetadata::UnpackTo(Message *message) const {
-                if (!InternalIs(message->GetDescriptor()->full_name())) {
-                    return false;
-                }
-                return message->ParseFromString(value_->Get());
-            }
+bool AnyMetadata::UnpackTo(Message* message) const {
+  if (!InternalIs(message->GetDescriptor()->full_name())) {
+    return false;
+  }
+  return message->ParseFromString(value_->Get());
+}
 
-            bool GetAnyFieldDescriptors(const Message &message,
-                                        const FieldDescriptor **type_url_field,
-                                        const FieldDescriptor **value_field) {
-                const Descriptor *descriptor = message.GetDescriptor();
-                if (descriptor->full_name() != kAnyFullTypeName) {
-                    return false;
-                }
-                *type_url_field = descriptor->FindFieldByNumber(1);
-                *value_field = descriptor->FindFieldByNumber(2);
-                return (*type_url_field != NULL &&
-                        (*type_url_field)->type() == FieldDescriptor::TYPE_STRING &&
-                        *value_field != NULL &&
-                        (*value_field)->type() == FieldDescriptor::TYPE_BYTES);
-            }
+bool GetAnyFieldDescriptors(const Message& message,
+                            const FieldDescriptor** type_url_field,
+                            const FieldDescriptor** value_field) {
+  const Descriptor* descriptor = message.GetDescriptor();
+  if (descriptor->full_name() != kAnyFullTypeName) {
+    return false;
+  }
+  *type_url_field = descriptor->FindFieldByNumber(1);
+  *value_field = descriptor->FindFieldByNumber(2);
+  return (*type_url_field != NULL &&
+          (*type_url_field)->type() == FieldDescriptor::TYPE_STRING &&
+          *value_field != NULL &&
+          (*value_field)->type() == FieldDescriptor::TYPE_BYTES);
+}
 
-        }  // namespace internal
-    }  // namespace protobuf
+}  // namespace internal
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

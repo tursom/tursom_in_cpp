@@ -56,27 +56,22 @@
 #endif
 
 namespace google {
-    namespace protobuf {
-        class MapKey;
-
-        class MapValueRef;
-
-        class MessageLayoutInspector;
-
-        class Message;
-
-        struct Metadata;
-    }  // namespace protobuf
+namespace protobuf {
+class MapKey;
+class MapValueRef;
+class MessageLayoutInspector;
+class Message;
+struct Metadata;
+}  // namespace protobuf
 }  // namespace google
 
 namespace google {
-    namespace protobuf {
-        namespace internal {
-            class DefaultEmptyOneof;
-
+namespace protobuf {
+namespace internal {
+class DefaultEmptyOneof;
 // Defined in other files.
-            class ExtensionSet;  // extension_set.h
-            class WeakFieldMap;  // weak_field_map.h
+class ExtensionSet;  // extension_set.h
+class WeakFieldMap;  // weak_field_map.h
 
 // This struct describes the internal layout of the message, hence this is
 // used to act on the message reflectively.
@@ -121,140 +116,140 @@ namespace google {
 //   weak_field_map_offset: If the message proto has weak fields, this is the
 //                  offset of _weak_field_map_ in the generated proto. Otherwise
 //                  -1.
-            struct ReflectionSchema {
-            public:
-                // Size of a google::protobuf::Message object of this type.
-                uint32 GetObjectSize() const { return static_cast<uint32>(object_size_); }
+struct ReflectionSchema {
+ public:
+  // Size of a google::protobuf::Message object of this type.
+  uint32 GetObjectSize() const { return static_cast<uint32>(object_size_); }
 
-                bool InRealOneof(const FieldDescriptor *field) const {
-                    return field->containing_oneof() &&
-                           !field->containing_oneof()->is_synthetic();
-                }
+  bool InRealOneof(const FieldDescriptor* field) const {
+    return field->containing_oneof() &&
+           !field->containing_oneof()->is_synthetic();
+  }
 
-                // Offset of a non-oneof field.  Getting a field offset is slightly more
-                // efficient when we know statically that it is not a oneof field.
-                uint32 GetFieldOffsetNonOneof(const FieldDescriptor *field) const {
-                    GOOGLE_DCHECK(!InRealOneof(field));
-                    return OffsetValue(offsets_[field->index()], field->type());
-                }
+  // Offset of a non-oneof field.  Getting a field offset is slightly more
+  // efficient when we know statically that it is not a oneof field.
+  uint32 GetFieldOffsetNonOneof(const FieldDescriptor* field) const {
+    GOOGLE_DCHECK(!InRealOneof(field));
+    return OffsetValue(offsets_[field->index()], field->type());
+  }
 
-                // Offset of any field.
-                uint32 GetFieldOffset(const FieldDescriptor *field) const {
-                    if (InRealOneof(field)) {
-                        size_t offset =
-                                static_cast<size_t>(field->containing_type()->field_count() +
-                                                    field->containing_oneof()->index());
-                        return OffsetValue(offsets_[offset], field->type());
-                    } else {
-                        return GetFieldOffsetNonOneof(field);
-                    }
-                }
+  // Offset of any field.
+  uint32 GetFieldOffset(const FieldDescriptor* field) const {
+    if (InRealOneof(field)) {
+      size_t offset =
+          static_cast<size_t>(field->containing_type()->field_count() +
+                              field->containing_oneof()->index());
+      return OffsetValue(offsets_[offset], field->type());
+    } else {
+      return GetFieldOffsetNonOneof(field);
+    }
+  }
 
-                uint32 GetOneofCaseOffset(const OneofDescriptor *oneof_descriptor) const {
-                    return static_cast<uint32>(oneof_case_offset_) +
-                           static_cast<uint32>(static_cast<size_t>(oneof_descriptor->index()) *
-                                               sizeof(uint32));
-                }
+  uint32 GetOneofCaseOffset(const OneofDescriptor* oneof_descriptor) const {
+    return static_cast<uint32>(oneof_case_offset_) +
+           static_cast<uint32>(static_cast<size_t>(oneof_descriptor->index()) *
+                               sizeof(uint32));
+  }
 
-                bool HasHasbits() const { return has_bits_offset_ != -1; }
+  bool HasHasbits() const { return has_bits_offset_ != -1; }
 
-                // Bit index within the bit array of hasbits.  Bit order is low-to-high.
-                uint32 HasBitIndex(const FieldDescriptor *field) const {
-                    if (has_bits_offset_ == -1) return static_cast<uint32>(-1);
-                    GOOGLE_DCHECK(HasHasbits());
-                    return has_bit_indices_[field->index()];
-                }
+  // Bit index within the bit array of hasbits.  Bit order is low-to-high.
+  uint32 HasBitIndex(const FieldDescriptor* field) const {
+    if (has_bits_offset_ == -1) return static_cast<uint32>(-1);
+    GOOGLE_DCHECK(HasHasbits());
+    return has_bit_indices_[field->index()];
+  }
 
-                // Byte offset of the hasbits array.
-                uint32 HasBitsOffset() const {
-                    GOOGLE_DCHECK(HasHasbits());
-                    return static_cast<uint32>(has_bits_offset_);
-                }
+  // Byte offset of the hasbits array.
+  uint32 HasBitsOffset() const {
+    GOOGLE_DCHECK(HasHasbits());
+    return static_cast<uint32>(has_bits_offset_);
+  }
 
-                // The offset of the InternalMetadataWithArena member.
-                // For Lite this will actually be an InternalMetadataWithArenaLite.
-                // The schema doesn't contain enough information to distinguish between
-                // these two cases.
-                uint32 GetMetadataOffset() const {
-                    return static_cast<uint32>(metadata_offset_);
-                }
+  // The offset of the InternalMetadataWithArena member.
+  // For Lite this will actually be an InternalMetadataWithArenaLite.
+  // The schema doesn't contain enough information to distinguish between
+  // these two cases.
+  uint32 GetMetadataOffset() const {
+    return static_cast<uint32>(metadata_offset_);
+  }
 
-                // Whether this message has an ExtensionSet.
-                bool HasExtensionSet() const { return extensions_offset_ != -1; }
+  // Whether this message has an ExtensionSet.
+  bool HasExtensionSet() const { return extensions_offset_ != -1; }
 
-                // The offset of the ExtensionSet in this message.
-                uint32 GetExtensionSetOffset() const {
-                    GOOGLE_DCHECK(HasExtensionSet());
-                    return static_cast<uint32>(extensions_offset_);
-                }
+  // The offset of the ExtensionSet in this message.
+  uint32 GetExtensionSetOffset() const {
+    GOOGLE_DCHECK(HasExtensionSet());
+    return static_cast<uint32>(extensions_offset_);
+  }
 
-                // The off set of WeakFieldMap when the message contains weak fields.
-                // The default is 0 for now.
-                int GetWeakFieldMapOffset() const { return weak_field_map_offset_; }
+  // The off set of WeakFieldMap when the message contains weak fields.
+  // The default is 0 for now.
+  int GetWeakFieldMapOffset() const { return weak_field_map_offset_; }
 
-                bool IsDefaultInstance(const Message &message) const {
-                    return &message == default_instance_;
-                }
+  bool IsDefaultInstance(const Message& message) const {
+    return &message == default_instance_;
+  }
 
-                // Returns a pointer to the default value for this field.  The size and type
-                // of the underlying data depends on the field's type.
-                const void *GetFieldDefault(const FieldDescriptor *field) const {
-                    return reinterpret_cast<const uint8 *>(default_instance_) +
-                           OffsetValue(offsets_[field->index()], field->type());
-                }
+  // Returns a pointer to the default value for this field.  The size and type
+  // of the underlying data depends on the field's type.
+  const void* GetFieldDefault(const FieldDescriptor* field) const {
+    return reinterpret_cast<const uint8*>(default_instance_) +
+           OffsetValue(offsets_[field->index()], field->type());
+  }
 
-                // Returns true if the field is implicitly backed by LazyField.
-                bool IsEagerlyVerifiedLazyField(const FieldDescriptor *field) const {
-                    GOOGLE_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_MESSAGE);
-                    (void) field;
-                    return false;
-                }
+  // Returns true if the field is implicitly backed by LazyField.
+  bool IsEagerlyVerifiedLazyField(const FieldDescriptor* field) const {
+    GOOGLE_DCHECK_EQ(field->type(), FieldDescriptor::TYPE_MESSAGE);
+    (void)field;
+    return false;
+  }
 
-                // Returns true if the field's accessor is called by any external code (aka,
-                // non proto library code).
-                bool IsFieldUsed(const FieldDescriptor *field) const {
-                    (void) field;
-                    return true;
-                }
+  // Returns true if the field's accessor is called by any external code (aka,
+  // non proto library code).
+  bool IsFieldUsed(const FieldDescriptor* field) const {
+    (void)field;
+    return true;
+  }
 
-                bool IsFieldStripped(const FieldDescriptor *field) const {
-                    (void) field;
-                    return false;
-                }
+  bool IsFieldStripped(const FieldDescriptor* field) const {
+    (void)field;
+    return false;
+  }
 
-                bool IsMessageStripped(const Descriptor *descriptor) const {
-                    (void) descriptor;
-                    return false;
-                }
+  bool IsMessageStripped(const Descriptor* descriptor) const {
+    (void)descriptor;
+    return false;
+  }
 
 
-                bool HasWeakFields() const { return weak_field_map_offset_ > 0; }
+  bool HasWeakFields() const { return weak_field_map_offset_ > 0; }
 
-                // These members are intended to be private, but we cannot actually make them
-                // private because this prevents us from using aggregate initialization of
-                // them, ie.
-                //
-                //   ReflectionSchema schema = {a, b, c, d, e, ...};
-                // private:
-                const Message *default_instance_;
-                const uint32 *offsets_;
-                const uint32 *has_bit_indices_;
-                int has_bits_offset_;
-                int metadata_offset_;
-                int extensions_offset_;
-                int oneof_case_offset_;
-                int object_size_;
-                int weak_field_map_offset_;
+  // These members are intended to be private, but we cannot actually make them
+  // private because this prevents us from using aggregate initialization of
+  // them, ie.
+  //
+  //   ReflectionSchema schema = {a, b, c, d, e, ...};
+  // private:
+  const Message* default_instance_;
+  const uint32* offsets_;
+  const uint32* has_bit_indices_;
+  int has_bits_offset_;
+  int metadata_offset_;
+  int extensions_offset_;
+  int oneof_case_offset_;
+  int object_size_;
+  int weak_field_map_offset_;
 
-                // We tag offset values to provide additional data about fields (such as
-                // "unused" or "lazy").
-                static uint32 OffsetValue(uint32 v, FieldDescriptor::Type type) {
-                    if (type == FieldDescriptor::TYPE_MESSAGE) {
-                        return v & 0x7FFFFFFEu;
-                    }
-                    return v & 0x7FFFFFFFu;
-                }
-            };
+  // We tag offset values to provide additional data about fields (such as
+  // "unused" or "lazy").
+  static uint32 OffsetValue(uint32 v, FieldDescriptor::Type type) {
+    if (type == FieldDescriptor::TYPE_MESSAGE) {
+      return v & 0x7FFFFFFEu;
+    }
+    return v & 0x7FFFFFFFu;
+  }
+};
 
 // Structs that the code generator emits directly to describe a message.
 // These should never used directly except to build a ReflectionSchema
@@ -262,68 +257,68 @@ namespace google {
 //
 // EXPERIMENTAL: these are changing rapidly, and may completely disappear
 // or merge with ReflectionSchema.
-            struct MigrationSchema {
-                int32 offsets_index;
-                int32 has_bit_indices_index;
-                int object_size;
-            };
+struct MigrationSchema {
+  int32 offsets_index;
+  int32 has_bit_indices_index;
+  int object_size;
+};
 
 // This struct tries to reduce unnecessary padding.
 // The num_xxx might not be close to their respective pointer, but this saves
 // padding.
-            struct PROTOBUF_EXPORT DescriptorTable {
-                mutable bool is_initialized;
-                bool is_eager;
-                int size;  // of serialized descriptor
-                const char *descriptor;
-                const char *filename;
-                once_flag *once;
-                const DescriptorTable *const *deps;
-                int num_deps;
-                int num_messages;
-                const MigrationSchema *schemas;
-                const Message *const *default_instances;
-                const uint32 *offsets;
-                // update the following descriptor arrays.
-                Metadata *file_level_metadata;
-                const EnumDescriptor **file_level_enum_descriptors;
-                const ServiceDescriptor **file_level_service_descriptors;
-            };
+struct PROTOBUF_EXPORT DescriptorTable {
+  mutable bool is_initialized;
+  bool is_eager;
+  int size;  // of serialized descriptor
+  const char* descriptor;
+  const char* filename;
+  once_flag* once;
+  const DescriptorTable* const* deps;
+  int num_deps;
+  int num_messages;
+  const MigrationSchema* schemas;
+  const Message* const* default_instances;
+  const uint32* offsets;
+  // update the following descriptor arrays.
+  Metadata* file_level_metadata;
+  const EnumDescriptor** file_level_enum_descriptors;
+  const ServiceDescriptor** file_level_service_descriptors;
+};
 
-            enum {
-                // Tag used on offsets for fields that don't have a real offset.
-                // For example, weak message fields go into the WeakFieldMap and not in an
-                // actual field.
-                kInvalidFieldOffsetTag = 0x40000000u,
-            };
+enum {
+  // Tag used on offsets for fields that don't have a real offset.
+  // For example, weak message fields go into the WeakFieldMap and not in an
+  // actual field.
+  kInvalidFieldOffsetTag = 0x40000000u,
+};
 
 // AssignDescriptors() pulls the compiled FileDescriptor from the DescriptorPool
 // and uses it to populate all of the global variables which store pointers to
 // the descriptor objects.  It also constructs the reflection objects.  It is
 // called the first time anyone calls descriptor() or GetReflection() on one of
 // the types defined in the file.  AssignDescriptors() is thread-safe.
-            void PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable *table,
-                                                   bool eager = false);
+void PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable* table,
+                                       bool eager = false);
 
 // Overload used to implement GetMetadataStatic in the generated code.
 // See comments in compiler/cpp/internal/file.cc as to why.
 // It takes a `Metadata` and returns it to allow for tail calls and reduce
 // binary size.
-            Metadata PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable *(*table)(),
-                                                       internal::once_flag *once,
-                                                       const Metadata &metadata);
+Metadata PROTOBUF_EXPORT AssignDescriptors(const DescriptorTable* (*table)(),
+                                           internal::once_flag* once,
+                                           const Metadata& metadata);
 
 // These cannot be in lite so we put them in the reflection.
-            PROTOBUF_EXPORT void UnknownFieldSetSerializer(const uint8 *base, uint32 offset,
-                                                           uint32 tag, uint32 has_offset,
-                                                           io::CodedOutputStream *output);
+PROTOBUF_EXPORT void UnknownFieldSetSerializer(const uint8* base, uint32 offset,
+                                               uint32 tag, uint32 has_offset,
+                                               io::CodedOutputStream* output);
 
-            struct PROTOBUF_EXPORT AddDescriptorsRunner {
-                explicit AddDescriptorsRunner(const DescriptorTable *table);
-            };
+struct PROTOBUF_EXPORT AddDescriptorsRunner {
+  explicit AddDescriptorsRunner(const DescriptorTable* table);
+};
 
-        }  // namespace internal
-    }  // namespace protobuf
+}  // namespace internal
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

@@ -37,28 +37,28 @@
 #include <google/protobuf/util/internal/location_tracker.h>
 
 namespace google {
-    namespace protobuf {
-        namespace util {
-            namespace converter {
+namespace protobuf {
+namespace util {
+namespace converter {
 
 // An empty concrete implementation of LocationTrackerInterface.
-                class ObjectLocationTracker : public LocationTrackerInterface {
-                public:
-                    // Creates an empty location tracker.
-                    ObjectLocationTracker() {}
+class ObjectLocationTracker : public LocationTrackerInterface {
+ public:
+  // Creates an empty location tracker.
+  ObjectLocationTracker() {}
 
-                    ~ObjectLocationTracker() override {}
+  ~ObjectLocationTracker() override {}
 
-                    // Returns empty because nothing is tracked.
-                    std::string ToString() const override { return ""; }
+  // Returns empty because nothing is tracked.
+  std::string ToString() const override { return ""; }
 
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ObjectLocationTracker);
-                };
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ObjectLocationTracker);
+};
 
-            }  // namespace converter
-        }  // namespace util
-    }  // namespace protobuf
+}  // namespace converter
+}  // namespace util
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_UTIL_CONVERTER_OBJECT_LOCATION_TRACKER_H__

@@ -59,8 +59,8 @@
 // the object behind the scenes -- e.g., to cache results -- but in these cases
 // mutex locking is used to make the access thread-safe.
 namespace google {
-    namespace protobuf {
+namespace protobuf {
 // TODO(gerbens) remove this comment, we need it to prevent clang-format
 // from combining the brackets. Which would mess with extract script
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google

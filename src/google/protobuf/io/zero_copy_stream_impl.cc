@@ -38,7 +38,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #endif
-
 #include <errno.h>
 
 #include <algorithm>
@@ -52,8 +51,8 @@
 
 
 namespace google {
-    namespace protobuf {
-        namespace io {
+namespace protobuf {
+namespace io {
 
 #ifdef _WIN32
 // Win32 lseek is broken:  If invoked on a non-seekable file descriptor, its
@@ -61,307 +60,307 @@ namespace google {
 #define lseek(fd, offset, origin) ((off_t)-1)
 // DO NOT include <io.h>, instead create functions in io_win32.{h,cc} and import
 // them like we do below.
-            using google::protobuf::io::win32::access;
-            using google::protobuf::io::win32::close;
-            using google::protobuf::io::win32::open;
-            using google::protobuf::io::win32::read;
-            using google::protobuf::io::win32::write;
+using google::protobuf::io::win32::access;
+using google::protobuf::io::win32::close;
+using google::protobuf::io::win32::open;
+using google::protobuf::io::win32::read;
+using google::protobuf::io::win32::write;
 #endif
 
-            namespace {
+namespace {
 
 // EINTR sucks.
-                int close_no_eintr(int fd) {
-                    int result;
-                    do {
-                        result = close(fd);
-                    } while (result < 0 && errno == EINTR);
-                    return result;
-                }
+int close_no_eintr(int fd) {
+  int result;
+  do {
+    result = close(fd);
+  } while (result < 0 && errno == EINTR);
+  return result;
+}
 
-            }  // namespace
-
-// ===================================================================
-
-            FileInputStream::FileInputStream(int file_descriptor, int block_size)
-                    : copying_input_(file_descriptor), impl_(&copying_input_, block_size) {}
-
-            bool FileInputStream::Close() { return copying_input_.Close(); }
-
-            bool FileInputStream::Next(const void **data, int *size) {
-                return impl_.Next(data, size);
-            }
-
-            void FileInputStream::BackUp(int count) { impl_.BackUp(count); }
-
-            bool FileInputStream::Skip(int count) { return impl_.Skip(count); }
-
-            int64_t FileInputStream::ByteCount() const { return impl_.ByteCount(); }
-
-            FileInputStream::CopyingFileInputStream::CopyingFileInputStream(
-                    int file_descriptor)
-                    : file_(file_descriptor),
-                      close_on_delete_(false),
-                      is_closed_(false),
-                      errno_(0),
-                      previous_seek_failed_(false) {}
-
-            FileInputStream::CopyingFileInputStream::~CopyingFileInputStream() {
-                if (close_on_delete_) {
-                    if (!Close()) {
-                        GOOGLE_LOG(ERROR) << "close() failed: " << strerror(errno_);
-                    }
-                }
-            }
-
-            bool FileInputStream::CopyingFileInputStream::Close() {
-                GOOGLE_CHECK(!is_closed_);
-
-                is_closed_ = true;
-                if (close_no_eintr(file_) != 0) {
-                    // The docs on close() do not specify whether a file descriptor is still
-                    // open after close() fails with EIO.  However, the glibc source code
-                    // seems to indicate that it is not.
-                    errno_ = errno;
-                    return false;
-                }
-
-                return true;
-            }
-
-            int FileInputStream::CopyingFileInputStream::Read(void *buffer, int size) {
-                GOOGLE_CHECK(!is_closed_);
-
-                int result;
-                do {
-                    result = read(file_, buffer, size);
-                } while (result < 0 && errno == EINTR);
-
-                if (result < 0) {
-                    // Read error (not EOF).
-                    errno_ = errno;
-                }
-
-                return result;
-            }
-
-            int FileInputStream::CopyingFileInputStream::Skip(int count) {
-                GOOGLE_CHECK(!is_closed_);
-
-                if (!previous_seek_failed_ && lseek(file_, count, SEEK_CUR) != (off_t) -1) {
-                    // Seek succeeded.
-                    return count;
-                } else {
-                    // Failed to seek.
-
-                    // Note to self:  Don't seek again.  This file descriptor doesn't
-                    // support it.
-                    previous_seek_failed_ = true;
-
-                    // Use the default implementation.
-                    return CopyingInputStream::Skip(count);
-                }
-            }
+}  // namespace
 
 // ===================================================================
 
-            FileOutputStream::FileOutputStream(int file_descriptor, int block_size)
-                    : CopyingOutputStreamAdaptor(&copying_output_),
-                      copying_output_(file_descriptor) {}
+FileInputStream::FileInputStream(int file_descriptor, int block_size)
+    : copying_input_(file_descriptor), impl_(&copying_input_, block_size) {}
 
-            bool FileOutputStream::Close() {
-                bool flush_succeeded = Flush();
-                return copying_output_.Close() && flush_succeeded;
-            }
+bool FileInputStream::Close() { return copying_input_.Close(); }
 
-            FileOutputStream::CopyingFileOutputStream::CopyingFileOutputStream(
-                    int file_descriptor)
-                    : file_(file_descriptor),
-                      close_on_delete_(false),
-                      is_closed_(false),
-                      errno_(0) {}
+bool FileInputStream::Next(const void** data, int* size) {
+  return impl_.Next(data, size);
+}
 
-            FileOutputStream::~FileOutputStream() { Flush(); }
+void FileInputStream::BackUp(int count) { impl_.BackUp(count); }
 
-            FileOutputStream::CopyingFileOutputStream::~CopyingFileOutputStream() {
-                if (close_on_delete_) {
-                    if (!Close()) {
-                        GOOGLE_LOG(ERROR) << "close() failed: " << strerror(errno_);
-                    }
-                }
-            }
+bool FileInputStream::Skip(int count) { return impl_.Skip(count); }
 
-            bool FileOutputStream::CopyingFileOutputStream::Close() {
-                GOOGLE_CHECK(!is_closed_);
+int64_t FileInputStream::ByteCount() const { return impl_.ByteCount(); }
 
-                is_closed_ = true;
-                if (close_no_eintr(file_) != 0) {
-                    // The docs on close() do not specify whether a file descriptor is still
-                    // open after close() fails with EIO.  However, the glibc source code
-                    // seems to indicate that it is not.
-                    errno_ = errno;
-                    return false;
-                }
+FileInputStream::CopyingFileInputStream::CopyingFileInputStream(
+    int file_descriptor)
+    : file_(file_descriptor),
+      close_on_delete_(false),
+      is_closed_(false),
+      errno_(0),
+      previous_seek_failed_(false) {}
 
-                return true;
-            }
+FileInputStream::CopyingFileInputStream::~CopyingFileInputStream() {
+  if (close_on_delete_) {
+    if (!Close()) {
+      GOOGLE_LOG(ERROR) << "close() failed: " << strerror(errno_);
+    }
+  }
+}
 
-            bool FileOutputStream::CopyingFileOutputStream::Write(const void *buffer,
-                                                                  int size) {
-                GOOGLE_CHECK(!is_closed_);
-                int total_written = 0;
+bool FileInputStream::CopyingFileInputStream::Close() {
+  GOOGLE_CHECK(!is_closed_);
 
-                const uint8 *buffer_base = reinterpret_cast<const uint8 *>(buffer);
+  is_closed_ = true;
+  if (close_no_eintr(file_) != 0) {
+    // The docs on close() do not specify whether a file descriptor is still
+    // open after close() fails with EIO.  However, the glibc source code
+    // seems to indicate that it is not.
+    errno_ = errno;
+    return false;
+  }
 
-                while (total_written < size) {
-                    int bytes;
-                    do {
-                        bytes = write(file_, buffer_base + total_written, size - total_written);
-                    } while (bytes < 0 && errno == EINTR);
+  return true;
+}
 
-                    if (bytes <= 0) {
-                        // Write error.
+int FileInputStream::CopyingFileInputStream::Read(void* buffer, int size) {
+  GOOGLE_CHECK(!is_closed_);
 
-                        // FIXME(kenton):  According to the man page, if write() returns zero,
-                        //   there was no error; write() simply did not write anything.  It's
-                        //   unclear under what circumstances this might happen, but presumably
-                        //   errno won't be set in this case.  I am confused as to how such an
-                        //   event should be handled.  For now I'm treating it as an error, since
-                        //   retrying seems like it could lead to an infinite loop.  I suspect
-                        //   this never actually happens anyway.
+  int result;
+  do {
+    result = read(file_, buffer, size);
+  } while (result < 0 && errno == EINTR);
 
-                        if (bytes < 0) {
-                            errno_ = errno;
-                        }
-                        return false;
-                    }
-                    total_written += bytes;
-                }
+  if (result < 0) {
+    // Read error (not EOF).
+    errno_ = errno;
+  }
 
-                return true;
-            }
+  return result;
+}
 
-// ===================================================================
+int FileInputStream::CopyingFileInputStream::Skip(int count) {
+  GOOGLE_CHECK(!is_closed_);
 
-            IstreamInputStream::IstreamInputStream(std::istream *input, int block_size)
-                    : copying_input_(input), impl_(&copying_input_, block_size) {}
+  if (!previous_seek_failed_ && lseek(file_, count, SEEK_CUR) != (off_t)-1) {
+    // Seek succeeded.
+    return count;
+  } else {
+    // Failed to seek.
 
-            bool IstreamInputStream::Next(const void **data, int *size) {
-                return impl_.Next(data, size);
-            }
+    // Note to self:  Don't seek again.  This file descriptor doesn't
+    // support it.
+    previous_seek_failed_ = true;
 
-            void IstreamInputStream::BackUp(int count) { impl_.BackUp(count); }
-
-            bool IstreamInputStream::Skip(int count) { return impl_.Skip(count); }
-
-            int64_t IstreamInputStream::ByteCount() const { return impl_.ByteCount(); }
-
-            IstreamInputStream::CopyingIstreamInputStream::CopyingIstreamInputStream(
-                    std::istream *input)
-                    : input_(input) {}
-
-            IstreamInputStream::CopyingIstreamInputStream::~CopyingIstreamInputStream() {}
-
-            int IstreamInputStream::CopyingIstreamInputStream::Read(void *buffer,
-                                                                    int size) {
-                input_->read(reinterpret_cast<char *>(buffer), size);
-                int result = input_->gcount();
-                if (result == 0 && input_->fail() && !input_->eof()) {
-                    return -1;
-                }
-                return result;
-            }
+    // Use the default implementation.
+    return CopyingInputStream::Skip(count);
+  }
+}
 
 // ===================================================================
 
-            OstreamOutputStream::OstreamOutputStream(std::ostream *output, int block_size)
-                    : copying_output_(output), impl_(&copying_output_, block_size) {}
+FileOutputStream::FileOutputStream(int file_descriptor, int block_size)
+    : CopyingOutputStreamAdaptor(&copying_output_),
+      copying_output_(file_descriptor) {}
 
-            OstreamOutputStream::~OstreamOutputStream() { impl_.Flush(); }
+bool FileOutputStream::Close() {
+  bool flush_succeeded = Flush();
+  return copying_output_.Close() && flush_succeeded;
+}
 
-            bool OstreamOutputStream::Next(void **data, int *size) {
-                return impl_.Next(data, size);
-            }
+FileOutputStream::CopyingFileOutputStream::CopyingFileOutputStream(
+    int file_descriptor)
+    : file_(file_descriptor),
+      close_on_delete_(false),
+      is_closed_(false),
+      errno_(0) {}
 
-            void OstreamOutputStream::BackUp(int count) { impl_.BackUp(count); }
+FileOutputStream::~FileOutputStream() { Flush(); }
 
-            int64_t OstreamOutputStream::ByteCount() const { return impl_.ByteCount(); }
+FileOutputStream::CopyingFileOutputStream::~CopyingFileOutputStream() {
+  if (close_on_delete_) {
+    if (!Close()) {
+      GOOGLE_LOG(ERROR) << "close() failed: " << strerror(errno_);
+    }
+  }
+}
 
-            OstreamOutputStream::CopyingOstreamOutputStream::CopyingOstreamOutputStream(
-                    std::ostream *output)
-                    : output_(output) {}
+bool FileOutputStream::CopyingFileOutputStream::Close() {
+  GOOGLE_CHECK(!is_closed_);
 
-            OstreamOutputStream::CopyingOstreamOutputStream::~CopyingOstreamOutputStream() {
-            }
+  is_closed_ = true;
+  if (close_no_eintr(file_) != 0) {
+    // The docs on close() do not specify whether a file descriptor is still
+    // open after close() fails with EIO.  However, the glibc source code
+    // seems to indicate that it is not.
+    errno_ = errno;
+    return false;
+  }
 
-            bool OstreamOutputStream::CopyingOstreamOutputStream::Write(const void *buffer,
-                                                                        int size) {
-                output_->write(reinterpret_cast<const char *>(buffer), size);
-                return output_->good();
-            }
+  return true;
+}
 
-// ===================================================================
+bool FileOutputStream::CopyingFileOutputStream::Write(const void* buffer,
+                                                      int size) {
+  GOOGLE_CHECK(!is_closed_);
+  int total_written = 0;
 
-            ConcatenatingInputStream::ConcatenatingInputStream(
-                    ZeroCopyInputStream *const streams[], int count)
-                    : streams_(streams), stream_count_(count), bytes_retired_(0) {
-            }
+  const uint8* buffer_base = reinterpret_cast<const uint8*>(buffer);
 
-            bool ConcatenatingInputStream::Next(const void **data, int *size) {
-                while (stream_count_ > 0) {
-                    if (streams_[0]->Next(data, size)) return true;
+  while (total_written < size) {
+    int bytes;
+    do {
+      bytes = write(file_, buffer_base + total_written, size - total_written);
+    } while (bytes < 0 && errno == EINTR);
 
-                    // That stream is done.  Advance to the next one.
-                    bytes_retired_ += streams_[0]->ByteCount();
-                    ++streams_;
-                    --stream_count_;
-                }
+    if (bytes <= 0) {
+      // Write error.
 
-                // No more streams.
-                return false;
-            }
+      // FIXME(kenton):  According to the man page, if write() returns zero,
+      //   there was no error; write() simply did not write anything.  It's
+      //   unclear under what circumstances this might happen, but presumably
+      //   errno won't be set in this case.  I am confused as to how such an
+      //   event should be handled.  For now I'm treating it as an error, since
+      //   retrying seems like it could lead to an infinite loop.  I suspect
+      //   this never actually happens anyway.
 
-            void ConcatenatingInputStream::BackUp(int count) {
-                if (stream_count_ > 0) {
-                    streams_[0]->BackUp(count);
-                } else {
-                    GOOGLE_LOG(DFATAL) << "Can't BackUp() after failed Next().";
-                }
-            }
+      if (bytes < 0) {
+        errno_ = errno;
+      }
+      return false;
+    }
+    total_written += bytes;
+  }
 
-            bool ConcatenatingInputStream::Skip(int count) {
-                while (stream_count_ > 0) {
-                    // Assume that ByteCount() can be used to find out how much we actually
-                    // skipped when Skip() fails.
-                    int64 target_byte_count = streams_[0]->ByteCount() + count;
-                    if (streams_[0]->Skip(count)) return true;
-
-                    // Hit the end of the stream.  Figure out how many more bytes we still have
-                    // to skip.
-                    int64 final_byte_count = streams_[0]->ByteCount();
-                    GOOGLE_DCHECK_LT(final_byte_count, target_byte_count);
-                    count = target_byte_count - final_byte_count;
-
-                    // That stream is done.  Advance to the next one.
-                    bytes_retired_ += final_byte_count;
-                    ++streams_;
-                    --stream_count_;
-                }
-
-                return false;
-            }
-
-            int64_t ConcatenatingInputStream::ByteCount() const {
-                if (stream_count_ == 0) {
-                    return bytes_retired_;
-                } else {
-                    return bytes_retired_ + streams_[0]->ByteCount();
-                }
-            }
-
+  return true;
+}
 
 // ===================================================================
 
-        }  // namespace io
-    }  // namespace protobuf
+IstreamInputStream::IstreamInputStream(std::istream* input, int block_size)
+    : copying_input_(input), impl_(&copying_input_, block_size) {}
+
+bool IstreamInputStream::Next(const void** data, int* size) {
+  return impl_.Next(data, size);
+}
+
+void IstreamInputStream::BackUp(int count) { impl_.BackUp(count); }
+
+bool IstreamInputStream::Skip(int count) { return impl_.Skip(count); }
+
+int64_t IstreamInputStream::ByteCount() const { return impl_.ByteCount(); }
+
+IstreamInputStream::CopyingIstreamInputStream::CopyingIstreamInputStream(
+    std::istream* input)
+    : input_(input) {}
+
+IstreamInputStream::CopyingIstreamInputStream::~CopyingIstreamInputStream() {}
+
+int IstreamInputStream::CopyingIstreamInputStream::Read(void* buffer,
+                                                        int size) {
+  input_->read(reinterpret_cast<char*>(buffer), size);
+  int result = input_->gcount();
+  if (result == 0 && input_->fail() && !input_->eof()) {
+    return -1;
+  }
+  return result;
+}
+
+// ===================================================================
+
+OstreamOutputStream::OstreamOutputStream(std::ostream* output, int block_size)
+    : copying_output_(output), impl_(&copying_output_, block_size) {}
+
+OstreamOutputStream::~OstreamOutputStream() { impl_.Flush(); }
+
+bool OstreamOutputStream::Next(void** data, int* size) {
+  return impl_.Next(data, size);
+}
+
+void OstreamOutputStream::BackUp(int count) { impl_.BackUp(count); }
+
+int64_t OstreamOutputStream::ByteCount() const { return impl_.ByteCount(); }
+
+OstreamOutputStream::CopyingOstreamOutputStream::CopyingOstreamOutputStream(
+    std::ostream* output)
+    : output_(output) {}
+
+OstreamOutputStream::CopyingOstreamOutputStream::~CopyingOstreamOutputStream() {
+}
+
+bool OstreamOutputStream::CopyingOstreamOutputStream::Write(const void* buffer,
+                                                            int size) {
+  output_->write(reinterpret_cast<const char*>(buffer), size);
+  return output_->good();
+}
+
+// ===================================================================
+
+ConcatenatingInputStream::ConcatenatingInputStream(
+    ZeroCopyInputStream* const streams[], int count)
+    : streams_(streams), stream_count_(count), bytes_retired_(0) {
+}
+
+bool ConcatenatingInputStream::Next(const void** data, int* size) {
+  while (stream_count_ > 0) {
+    if (streams_[0]->Next(data, size)) return true;
+
+    // That stream is done.  Advance to the next one.
+    bytes_retired_ += streams_[0]->ByteCount();
+    ++streams_;
+    --stream_count_;
+  }
+
+  // No more streams.
+  return false;
+}
+
+void ConcatenatingInputStream::BackUp(int count) {
+  if (stream_count_ > 0) {
+    streams_[0]->BackUp(count);
+  } else {
+    GOOGLE_LOG(DFATAL) << "Can't BackUp() after failed Next().";
+  }
+}
+
+bool ConcatenatingInputStream::Skip(int count) {
+  while (stream_count_ > 0) {
+    // Assume that ByteCount() can be used to find out how much we actually
+    // skipped when Skip() fails.
+    int64 target_byte_count = streams_[0]->ByteCount() + count;
+    if (streams_[0]->Skip(count)) return true;
+
+    // Hit the end of the stream.  Figure out how many more bytes we still have
+    // to skip.
+    int64 final_byte_count = streams_[0]->ByteCount();
+    GOOGLE_DCHECK_LT(final_byte_count, target_byte_count);
+    count = target_byte_count - final_byte_count;
+
+    // That stream is done.  Advance to the next one.
+    bytes_retired_ += final_byte_count;
+    ++streams_;
+    --stream_count_;
+  }
+
+  return false;
+}
+
+int64_t ConcatenatingInputStream::ByteCount() const {
+  if (stream_count_ == 0) {
+    return bytes_retired_;
+  } else {
+    return bytes_retired_ + streams_[0]->ByteCount();
+  }
+}
+
+
+// ===================================================================
+
+}  // namespace io
+}  // namespace protobuf
 }  // namespace google

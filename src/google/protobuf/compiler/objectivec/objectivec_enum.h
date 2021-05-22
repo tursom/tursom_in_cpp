@@ -38,37 +38,34 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace objectivec {
+namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-                class EnumGenerator {
-                public:
-                    explicit EnumGenerator(const EnumDescriptor *descriptor);
+class EnumGenerator {
+ public:
+  explicit EnumGenerator(const EnumDescriptor* descriptor);
+  ~EnumGenerator();
 
-                    ~EnumGenerator();
+  EnumGenerator(const EnumGenerator&) = delete;
+  EnumGenerator& operator=(const EnumGenerator&) = delete;
 
-                    EnumGenerator(const EnumGenerator &) = delete;
+  void GenerateHeader(io::Printer* printer);
+  void GenerateSource(io::Printer* printer);
 
-                    EnumGenerator &operator=(const EnumGenerator &) = delete;
+  const std::string& name() const { return name_; }
 
-                    void GenerateHeader(io::Printer *printer);
+ private:
+  const EnumDescriptor* descriptor_;
+  std::vector<const EnumValueDescriptor*> base_values_;
+  std::vector<const EnumValueDescriptor*> all_values_;
+  std::set<const EnumValueDescriptor*> alias_values_to_skip_;
+  const std::string name_;
+};
 
-                    void GenerateSource(io::Printer *printer);
-
-                    const std::string &name() const { return name_; }
-
-                private:
-                    const EnumDescriptor *descriptor_;
-                    std::vector<const EnumValueDescriptor *> base_values_;
-                    std::vector<const EnumValueDescriptor *> all_values_;
-                    std::set<const EnumValueDescriptor *> alias_values_to_skip_;
-                    const std::string name_;
-                };
-
-            }  // namespace objectivec
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace objectivec
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ENUM_H__

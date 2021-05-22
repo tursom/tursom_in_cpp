@@ -38,181 +38,157 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace objectivec {
+namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-                class FieldGenerator {
-                public:
-                    static FieldGenerator *Make(const FieldDescriptor *field,
-                                                const Options &options);
+class FieldGenerator {
+ public:
+  static FieldGenerator* Make(const FieldDescriptor* field,
+                              const Options& options);
 
-                    virtual ~FieldGenerator();
+  virtual ~FieldGenerator();
 
-                    FieldGenerator(const FieldGenerator &) = delete;
+  FieldGenerator(const FieldGenerator&) = delete;
+  FieldGenerator& operator=(const FieldGenerator&) = delete;
 
-                    FieldGenerator &operator=(const FieldGenerator &) = delete;
+  // Exposed for subclasses to fill in.
+  virtual void GenerateFieldStorageDeclaration(io::Printer* printer) const = 0;
+  virtual void GeneratePropertyDeclaration(io::Printer* printer) const = 0;
+  virtual void GeneratePropertyImplementation(io::Printer* printer) const = 0;
 
-                    // Exposed for subclasses to fill in.
-                    virtual void GenerateFieldStorageDeclaration(io::Printer *printer) const = 0;
+  // Called by GenerateFieldDescription, exposed for classes that need custom
+  // generation.
 
-                    virtual void GeneratePropertyDeclaration(io::Printer *printer) const = 0;
+  // Exposed for subclasses to extend, base does nothing.
+  virtual void GenerateCFunctionDeclarations(io::Printer* printer) const;
+  virtual void GenerateCFunctionImplementations(io::Printer* printer) const;
 
-                    virtual void GeneratePropertyImplementation(io::Printer *printer) const = 0;
+  // Exposed for subclasses, should always call it on the parent class also.
+  virtual void DetermineForwardDeclarations(
+      std::set<std::string>* fwd_decls) const;
+  virtual void DetermineObjectiveCClassDefinitions(
+      std::set<std::string>* fwd_decls) const;
 
-                    // Called by GenerateFieldDescription, exposed for classes that need custom
-                    // generation.
+  // Used during generation, not intended to be extended by subclasses.
+  void GenerateFieldDescription(
+      io::Printer* printer, bool include_default) const;
+  void GenerateFieldNumberConstant(io::Printer* printer) const;
 
-                    // Exposed for subclasses to extend, base does nothing.
-                    virtual void GenerateCFunctionDeclarations(io::Printer *printer) const;
+  // Exposed to get and set the has bits information.
+  virtual bool RuntimeUsesHasBit(void) const = 0;
+  void SetRuntimeHasBit(int has_index);
+  void SetNoHasBit(void);
+  virtual int ExtraRuntimeHasBitsNeeded(void) const;
+  virtual void SetExtraRuntimeHasBitsBase(int index_base);
+  void SetOneofIndexBase(int index_base);
 
-                    virtual void GenerateCFunctionImplementations(io::Printer *printer) const;
+  std::string variable(const char* key) const {
+    return variables_.find(key)->second;
+  }
 
-                    // Exposed for subclasses, should always call it on the parent class also.
-                    virtual void DetermineForwardDeclarations(
-                            std::set<std::string> *fwd_decls) const;
+  bool needs_textformat_name_support() const {
+    const std::string& field_flags = variable("fieldflags");
+    return field_flags.find("GPBFieldTextFormatNameCustom") !=
+           std::string::npos;
+  }
+  std::string generated_objc_name() const { return variable("name"); }
+  std::string raw_field_name() const { return variable("raw_field_name"); }
 
-                    virtual void DetermineObjectiveCClassDefinitions(
-                            std::set<std::string> *fwd_decls) const;
+ protected:
+  FieldGenerator(const FieldDescriptor* descriptor, const Options& options);
 
-                    // Used during generation, not intended to be extended by subclasses.
-                    void GenerateFieldDescription(
-                            io::Printer *printer, bool include_default) const;
+  virtual void FinishInitialization(void);
+  bool WantsHasProperty(void) const;
 
-                    void GenerateFieldNumberConstant(io::Printer *printer) const;
+  const FieldDescriptor* descriptor_;
+  std::map<std::string, std::string> variables_;
+};
 
-                    // Exposed to get and set the has bits information.
-                    virtual bool RuntimeUsesHasBit(void) const = 0;
+class SingleFieldGenerator : public FieldGenerator {
+ public:
+  virtual ~SingleFieldGenerator();
 
-                    void SetRuntimeHasBit(int has_index);
+  SingleFieldGenerator(const SingleFieldGenerator&) = delete;
+  SingleFieldGenerator& operator=(const SingleFieldGenerator&) = delete;
 
-                    void SetNoHasBit(void);
+  virtual void GenerateFieldStorageDeclaration(io::Printer* printer) const;
+  virtual void GeneratePropertyDeclaration(io::Printer* printer) const;
 
-                    virtual int ExtraRuntimeHasBitsNeeded(void) const;
+  virtual void GeneratePropertyImplementation(io::Printer* printer) const;
 
-                    virtual void SetExtraRuntimeHasBitsBase(int index_base);
+  virtual bool RuntimeUsesHasBit(void) const;
 
-                    void SetOneofIndexBase(int index_base);
-
-                    std::string variable(const char *key) const {
-                        return variables_.find(key)->second;
-                    }
-
-                    bool needs_textformat_name_support() const {
-                        const std::string &field_flags = variable("fieldflags");
-                        return field_flags.find("GPBFieldTextFormatNameCustom") !=
-                               std::string::npos;
-                    }
-
-                    std::string generated_objc_name() const { return variable("name"); }
-
-                    std::string raw_field_name() const { return variable("raw_field_name"); }
-
-                protected:
-                    FieldGenerator(const FieldDescriptor *descriptor, const Options &options);
-
-                    virtual void FinishInitialization(void);
-
-                    bool WantsHasProperty(void) const;
-
-                    const FieldDescriptor *descriptor_;
-                    std::map<std::string, std::string> variables_;
-                };
-
-                class SingleFieldGenerator : public FieldGenerator {
-                public:
-                    virtual ~SingleFieldGenerator();
-
-                    SingleFieldGenerator(const SingleFieldGenerator &) = delete;
-
-                    SingleFieldGenerator &operator=(const SingleFieldGenerator &) = delete;
-
-                    virtual void GenerateFieldStorageDeclaration(io::Printer *printer) const;
-
-                    virtual void GeneratePropertyDeclaration(io::Printer *printer) const;
-
-                    virtual void GeneratePropertyImplementation(io::Printer *printer) const;
-
-                    virtual bool RuntimeUsesHasBit(void) const;
-
-                protected:
-                    SingleFieldGenerator(const FieldDescriptor *descriptor,
-                                         const Options &options);
-                };
+ protected:
+  SingleFieldGenerator(const FieldDescriptor* descriptor,
+                       const Options& options);
+};
 
 // Subclass with common support for when the field ends up as an ObjC Object.
-                class ObjCObjFieldGenerator : public SingleFieldGenerator {
-                public:
-                    virtual ~ObjCObjFieldGenerator();
+class ObjCObjFieldGenerator : public SingleFieldGenerator {
+ public:
+  virtual ~ObjCObjFieldGenerator();
 
-                    ObjCObjFieldGenerator(const ObjCObjFieldGenerator &) = delete;
+  ObjCObjFieldGenerator(const ObjCObjFieldGenerator&) = delete;
+  ObjCObjFieldGenerator& operator=(const ObjCObjFieldGenerator&) = delete;
 
-                    ObjCObjFieldGenerator &operator=(const ObjCObjFieldGenerator &) = delete;
+  virtual void GenerateFieldStorageDeclaration(io::Printer* printer) const;
+  virtual void GeneratePropertyDeclaration(io::Printer* printer) const;
 
-                    virtual void GenerateFieldStorageDeclaration(io::Printer *printer) const;
+ protected:
+  ObjCObjFieldGenerator(const FieldDescriptor* descriptor,
+                        const Options& options);
+};
 
-                    virtual void GeneratePropertyDeclaration(io::Printer *printer) const;
+class RepeatedFieldGenerator : public ObjCObjFieldGenerator {
+ public:
+  virtual ~RepeatedFieldGenerator();
 
-                protected:
-                    ObjCObjFieldGenerator(const FieldDescriptor *descriptor,
-                                          const Options &options);
-                };
+  RepeatedFieldGenerator(const RepeatedFieldGenerator&) = delete;
+  RepeatedFieldGenerator& operator=(const RepeatedFieldGenerator&) = delete;
 
-                class RepeatedFieldGenerator : public ObjCObjFieldGenerator {
-                public:
-                    virtual ~RepeatedFieldGenerator();
+  virtual void GenerateFieldStorageDeclaration(io::Printer* printer) const;
+  virtual void GeneratePropertyDeclaration(io::Printer* printer) const;
 
-                    RepeatedFieldGenerator(const RepeatedFieldGenerator &) = delete;
+  virtual void GeneratePropertyImplementation(io::Printer* printer) const;
 
-                    RepeatedFieldGenerator &operator=(const RepeatedFieldGenerator &) = delete;
+  virtual bool RuntimeUsesHasBit(void) const;
 
-                    virtual void GenerateFieldStorageDeclaration(io::Printer *printer) const;
-
-                    virtual void GeneratePropertyDeclaration(io::Printer *printer) const;
-
-                    virtual void GeneratePropertyImplementation(io::Printer *printer) const;
-
-                    virtual bool RuntimeUsesHasBit(void) const;
-
-                protected:
-                    RepeatedFieldGenerator(const FieldDescriptor *descriptor,
-                                           const Options &options);
-
-                    virtual void FinishInitialization(void);
-                };
+ protected:
+  RepeatedFieldGenerator(const FieldDescriptor* descriptor,
+                         const Options& options);
+  virtual void FinishInitialization(void);
+};
 
 // Convenience class which constructs FieldGenerators for a Descriptor.
-                class FieldGeneratorMap {
-                public:
-                    FieldGeneratorMap(const Descriptor *descriptor, const Options &options);
+class FieldGeneratorMap {
+ public:
+  FieldGeneratorMap(const Descriptor* descriptor, const Options& options);
+  ~FieldGeneratorMap();
 
-                    ~FieldGeneratorMap();
+  FieldGeneratorMap(const FieldGeneratorMap&) = delete;
+  FieldGeneratorMap& operator=(const FieldGeneratorMap&) = delete;
 
-                    FieldGeneratorMap(const FieldGeneratorMap &) = delete;
+  const FieldGenerator& get(const FieldDescriptor* field) const;
+  const FieldGenerator& get_extension(int index) const;
 
-                    FieldGeneratorMap &operator=(const FieldGeneratorMap &) = delete;
+  // Assigns the has bits and returns the number of bits needed.
+  int CalculateHasBits(void);
 
-                    const FieldGenerator &get(const FieldDescriptor *field) const;
+  void SetOneofIndexBase(int index_base);
 
-                    const FieldGenerator &get_extension(int index) const;
+  // Check if any field of this message has a non zero default.
+  bool DoesAnyFieldHaveNonZeroDefault(void) const;
 
-                    // Assigns the has bits and returns the number of bits needed.
-                    int CalculateHasBits(void);
+ private:
+  const Descriptor* descriptor_;
+  std::vector<std::unique_ptr<FieldGenerator>> field_generators_;
+  std::vector<std::unique_ptr<FieldGenerator>> extension_generators_;
+};
 
-                    void SetOneofIndexBase(int index_base);
-
-                    // Check if any field of this message has a non zero default.
-                    bool DoesAnyFieldHaveNonZeroDefault(void) const;
-
-                private:
-                    const Descriptor *descriptor_;
-                    std::vector<std::unique_ptr<FieldGenerator>> field_generators_;
-                    std::vector<std::unique_ptr<FieldGenerator>> extension_generators_;
-                };
-
-            }  // namespace objectivec
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace objectivec
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_FIELD_H__

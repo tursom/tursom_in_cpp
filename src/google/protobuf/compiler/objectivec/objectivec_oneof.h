@@ -38,44 +38,39 @@
 #include <google/protobuf/io/printer.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace objectivec {
+namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-                class OneofGenerator {
-                public:
-                    explicit OneofGenerator(const OneofDescriptor *descriptor);
+class OneofGenerator {
+ public:
+  explicit OneofGenerator(const OneofDescriptor* descriptor);
+  ~OneofGenerator();
 
-                    ~OneofGenerator();
+  OneofGenerator(const OneofGenerator&) = delete;
+  OneofGenerator& operator=(const OneofGenerator&) = delete;
 
-                    OneofGenerator(const OneofGenerator &) = delete;
+  void SetOneofIndexBase(int index_base);
 
-                    OneofGenerator &operator=(const OneofGenerator &) = delete;
+  void GenerateCaseEnum(io::Printer* printer);
 
-                    void SetOneofIndexBase(int index_base);
+  void GeneratePublicCasePropertyDeclaration(io::Printer* printer);
+  void GenerateClearFunctionDeclaration(io::Printer* printer);
 
-                    void GenerateCaseEnum(io::Printer *printer);
+  void GeneratePropertyImplementation(io::Printer* printer);
+  void GenerateClearFunctionImplementation(io::Printer* printer);
 
-                    void GeneratePublicCasePropertyDeclaration(io::Printer *printer);
+  std::string DescriptorName(void) const;
+  std::string HasIndexAsString(void) const;
 
-                    void GenerateClearFunctionDeclaration(io::Printer *printer);
+ private:
+  const OneofDescriptor* descriptor_;
+  std::map<std::string, std::string> variables_;
+};
 
-                    void GeneratePropertyImplementation(io::Printer *printer);
-
-                    void GenerateClearFunctionImplementation(io::Printer *printer);
-
-                    std::string DescriptorName(void) const;
-
-                    std::string HasIndexAsString(void) const;
-
-                private:
-                    const OneofDescriptor *descriptor_;
-                    std::map<std::string, std::string> variables_;
-                };
-
-            }  // namespace objectivec
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace objectivec
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_ONEOF_H__

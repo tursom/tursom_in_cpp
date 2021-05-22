@@ -37,55 +37,42 @@
 #include <google/protobuf/compiler/csharp/csharp_field_base.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace csharp {
+namespace protobuf {
+namespace compiler {
+namespace csharp {
 
-                struct Options;
+struct Options;
 
-                class RepeatedMessageFieldGenerator : public FieldGeneratorBase {
-                public:
-                    RepeatedMessageFieldGenerator(const FieldDescriptor *descriptor,
-                                                  int presenceIndex,
-                                                  const Options *options);
+class RepeatedMessageFieldGenerator : public FieldGeneratorBase {
+ public:
+  RepeatedMessageFieldGenerator(const FieldDescriptor* descriptor,
+                                int presenceIndex,
+                                const Options *options);
+  ~RepeatedMessageFieldGenerator();
 
-                    ~RepeatedMessageFieldGenerator();
+  RepeatedMessageFieldGenerator(const RepeatedMessageFieldGenerator&) = delete;
+  RepeatedMessageFieldGenerator& operator=(
+      const RepeatedMessageFieldGenerator&) = delete;
 
-                    RepeatedMessageFieldGenerator(const RepeatedMessageFieldGenerator &) = delete;
+  virtual void GenerateCloningCode(io::Printer* printer);
+  virtual void GenerateFreezingCode(io::Printer* printer);
+  virtual void GenerateMembers(io::Printer* printer);
+  virtual void GenerateMergingCode(io::Printer* printer);
+  virtual void GenerateParsingCode(io::Printer* printer);
+  virtual void GenerateParsingCode(io::Printer* printer, bool use_parse_context);
+  virtual void GenerateSerializationCode(io::Printer* printer);
+  virtual void GenerateSerializationCode(io::Printer* printer, bool use_write_context);
+  virtual void GenerateSerializedSizeCode(io::Printer* printer);
+  virtual void GenerateExtensionCode(io::Printer* printer);
 
-                    RepeatedMessageFieldGenerator &operator=(
-                            const RepeatedMessageFieldGenerator &) = delete;
+  virtual void WriteHash(io::Printer* printer);
+  virtual void WriteEquals(io::Printer* printer);
+  virtual void WriteToString(io::Printer* printer);
+};
 
-                    virtual void GenerateCloningCode(io::Printer *printer);
-
-                    virtual void GenerateFreezingCode(io::Printer *printer);
-
-                    virtual void GenerateMembers(io::Printer *printer);
-
-                    virtual void GenerateMergingCode(io::Printer *printer);
-
-                    virtual void GenerateParsingCode(io::Printer *printer);
-
-                    virtual void GenerateParsingCode(io::Printer *printer, bool use_parse_context);
-
-                    virtual void GenerateSerializationCode(io::Printer *printer);
-
-                    virtual void GenerateSerializationCode(io::Printer *printer, bool use_write_context);
-
-                    virtual void GenerateSerializedSizeCode(io::Printer *printer);
-
-                    virtual void GenerateExtensionCode(io::Printer *printer);
-
-                    virtual void WriteHash(io::Printer *printer);
-
-                    virtual void WriteEquals(io::Printer *printer);
-
-                    virtual void WriteToString(io::Printer *printer);
-                };
-
-            }  // namespace csharp
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace csharp
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CSHARP_REPEATED_MESSAGE_FIELD_H__

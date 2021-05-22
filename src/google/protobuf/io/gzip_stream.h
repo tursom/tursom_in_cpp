@@ -52,158 +52,149 @@
 #include <google/protobuf/port_def.inc>
 
 namespace google {
-    namespace protobuf {
-        namespace io {
+namespace protobuf {
+namespace io {
 
 // A ZeroCopyInputStream that reads compressed data through zlib
-            class PROTOBUF_EXPORT GzipInputStream : public ZeroCopyInputStream {
-            public:
-                // Format key for constructor
-                enum Format {
-                    // zlib will autodetect gzip header or deflate stream
-                    AUTO = 0,
+class PROTOBUF_EXPORT GzipInputStream : public ZeroCopyInputStream {
+ public:
+  // Format key for constructor
+  enum Format {
+    // zlib will autodetect gzip header or deflate stream
+    AUTO = 0,
 
-                    // GZIP streams have some extra header data for file attributes.
-                    GZIP = 1,
+    // GZIP streams have some extra header data for file attributes.
+    GZIP = 1,
 
-                    // Simpler zlib stream format.
-                    ZLIB = 2,
-                };
+    // Simpler zlib stream format.
+    ZLIB = 2,
+  };
 
-                // buffer_size and format may be -1 for default of 64kB and GZIP format
-                explicit GzipInputStream(ZeroCopyInputStream *sub_stream,
-                                         Format format = AUTO, int buffer_size = -1);
+  // buffer_size and format may be -1 for default of 64kB and GZIP format
+  explicit GzipInputStream(ZeroCopyInputStream* sub_stream,
+                           Format format = AUTO, int buffer_size = -1);
+  virtual ~GzipInputStream();
 
-                virtual ~GzipInputStream();
+  // Return last error message or NULL if no error.
+  inline const char* ZlibErrorMessage() const { return zcontext_.msg; }
+  inline int ZlibErrorCode() const { return zerror_; }
 
-                // Return last error message or NULL if no error.
-                inline const char *ZlibErrorMessage() const { return zcontext_.msg; }
+  // implements ZeroCopyInputStream ----------------------------------
+  bool Next(const void** data, int* size);
+  void BackUp(int count);
+  bool Skip(int count);
+  int64_t ByteCount() const;
 
-                inline int ZlibErrorCode() const { return zerror_; }
+ private:
+  Format format_;
 
-                // implements ZeroCopyInputStream ----------------------------------
-                bool Next(const void **data, int *size);
+  ZeroCopyInputStream* sub_stream_;
 
-                void BackUp(int count);
+  z_stream zcontext_;
+  int zerror_;
 
-                bool Skip(int count);
+  void* output_buffer_;
+  void* output_position_;
+  size_t output_buffer_length_;
+  int64 byte_count_;
 
-                int64_t ByteCount() const;
+  int Inflate(int flush);
+  void DoNextOutput(const void** data, int* size);
 
-            private:
-                Format format_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipInputStream);
+};
 
-                ZeroCopyInputStream *sub_stream_;
+class PROTOBUF_EXPORT GzipOutputStream : public ZeroCopyOutputStream {
+ public:
+  // Format key for constructor
+  enum Format {
+    // GZIP streams have some extra header data for file attributes.
+    GZIP = 1,
 
-                z_stream zcontext_;
-                int zerror_;
+    // Simpler zlib stream format.
+    ZLIB = 2,
+  };
 
-                void *output_buffer_;
-                void *output_position_;
-                size_t output_buffer_length_;
-                int64 byte_count_;
+  struct PROTOBUF_EXPORT Options {
+    // Defaults to GZIP.
+    Format format;
 
-                int Inflate(int flush);
+    // What size buffer to use internally.  Defaults to 64kB.
+    int buffer_size;
 
-                void DoNextOutput(const void **data, int *size);
+    // A number between 0 and 9, where 0 is no compression and 9 is best
+    // compression.  Defaults to Z_DEFAULT_COMPRESSION (see zlib.h).
+    int compression_level;
 
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipInputStream);
-            };
+    // Defaults to Z_DEFAULT_STRATEGY.  Can also be set to Z_FILTERED,
+    // Z_HUFFMAN_ONLY, or Z_RLE.  See the documentation for deflateInit2 in
+    // zlib.h for definitions of these constants.
+    int compression_strategy;
 
-            class PROTOBUF_EXPORT GzipOutputStream : public ZeroCopyOutputStream {
-            public:
-                // Format key for constructor
-                enum Format {
-                    // GZIP streams have some extra header data for file attributes.
-                    GZIP = 1,
+    Options();  // Initializes with default values.
+  };
 
-                    // Simpler zlib stream format.
-                    ZLIB = 2,
-                };
+  // Create a GzipOutputStream with default options.
+  explicit GzipOutputStream(ZeroCopyOutputStream* sub_stream);
 
-                struct PROTOBUF_EXPORT Options {
-                    // Defaults to GZIP.
-                    Format format;
+  // Create a GzipOutputStream with the given options.
+  GzipOutputStream(ZeroCopyOutputStream* sub_stream, const Options& options);
 
-                    // What size buffer to use internally.  Defaults to 64kB.
-                    int buffer_size;
+  virtual ~GzipOutputStream();
 
-                    // A number between 0 and 9, where 0 is no compression and 9 is best
-                    // compression.  Defaults to Z_DEFAULT_COMPRESSION (see zlib.h).
-                    int compression_level;
+  // Return last error message or NULL if no error.
+  inline const char* ZlibErrorMessage() const { return zcontext_.msg; }
+  inline int ZlibErrorCode() const { return zerror_; }
 
-                    // Defaults to Z_DEFAULT_STRATEGY.  Can also be set to Z_FILTERED,
-                    // Z_HUFFMAN_ONLY, or Z_RLE.  See the documentation for deflateInit2 in
-                    // zlib.h for definitions of these constants.
-                    int compression_strategy;
+  // Flushes data written so far to zipped data in the underlying stream.
+  // It is the caller's responsibility to flush the underlying stream if
+  // necessary.
+  // Compression may be less efficient stopping and starting around flushes.
+  // Returns true if no error.
+  //
+  // Please ensure that block size is > 6. Here is an excerpt from the zlib
+  // doc that explains why:
+  //
+  // In the case of a Z_FULL_FLUSH or Z_SYNC_FLUSH, make sure that avail_out
+  // is greater than six to avoid repeated flush markers due to
+  // avail_out == 0 on return.
+  bool Flush();
 
-                    Options();  // Initializes with default values.
-                };
+  // Writes out all data and closes the gzip stream.
+  // It is the caller's responsibility to close the underlying stream if
+  // necessary.
+  // Returns true if no error.
+  bool Close();
 
-                // Create a GzipOutputStream with default options.
-                explicit GzipOutputStream(ZeroCopyOutputStream *sub_stream);
+  // implements ZeroCopyOutputStream ---------------------------------
+  bool Next(void** data, int* size);
+  void BackUp(int count);
+  int64_t ByteCount() const;
 
-                // Create a GzipOutputStream with the given options.
-                GzipOutputStream(ZeroCopyOutputStream *sub_stream, const Options &options);
+ private:
+  ZeroCopyOutputStream* sub_stream_;
+  // Result from calling Next() on sub_stream_
+  void* sub_data_;
+  int sub_data_size_;
 
-                virtual ~GzipOutputStream();
+  z_stream zcontext_;
+  int zerror_;
+  void* input_buffer_;
+  size_t input_buffer_length_;
 
-                // Return last error message or NULL if no error.
-                inline const char *ZlibErrorMessage() const { return zcontext_.msg; }
+  // Shared constructor code.
+  void Init(ZeroCopyOutputStream* sub_stream, const Options& options);
 
-                inline int ZlibErrorCode() const { return zerror_; }
+  // Do some compression.
+  // Takes zlib flush mode.
+  // Returns zlib error code.
+  int Deflate(int flush);
 
-                // Flushes data written so far to zipped data in the underlying stream.
-                // It is the caller's responsibility to flush the underlying stream if
-                // necessary.
-                // Compression may be less efficient stopping and starting around flushes.
-                // Returns true if no error.
-                //
-                // Please ensure that block size is > 6. Here is an excerpt from the zlib
-                // doc that explains why:
-                //
-                // In the case of a Z_FULL_FLUSH or Z_SYNC_FLUSH, make sure that avail_out
-                // is greater than six to avoid repeated flush markers due to
-                // avail_out == 0 on return.
-                bool Flush();
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipOutputStream);
+};
 
-                // Writes out all data and closes the gzip stream.
-                // It is the caller's responsibility to close the underlying stream if
-                // necessary.
-                // Returns true if no error.
-                bool Close();
-
-                // implements ZeroCopyOutputStream ---------------------------------
-                bool Next(void **data, int *size);
-
-                void BackUp(int count);
-
-                int64_t ByteCount() const;
-
-            private:
-                ZeroCopyOutputStream *sub_stream_;
-                // Result from calling Next() on sub_stream_
-                void *sub_data_;
-                int sub_data_size_;
-
-                z_stream zcontext_;
-                int zerror_;
-                void *input_buffer_;
-                size_t input_buffer_length_;
-
-                // Shared constructor code.
-                void Init(ZeroCopyOutputStream *sub_stream, const Options &options);
-
-                // Do some compression.
-                // Takes zlib flush mode.
-                // Returns zlib error code.
-                int Deflate(int flush);
-
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GzipOutputStream);
-            };
-
-        }  // namespace io
-    }  // namespace protobuf
+}  // namespace io
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

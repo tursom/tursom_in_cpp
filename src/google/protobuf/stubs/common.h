@@ -50,18 +50,16 @@
 
 #ifndef PROTOBUF_USE_EXCEPTIONS
 #if defined(_MSC_VER) && defined(_CPPUNWIND)
-#define PROTOBUF_USE_EXCEPTIONS 1
+  #define PROTOBUF_USE_EXCEPTIONS 1
 #elif defined(__EXCEPTIONS)
-#define PROTOBUF_USE_EXCEPTIONS 1
+  #define PROTOBUF_USE_EXCEPTIONS 1
 #else
-#define PROTOBUF_USE_EXCEPTIONS 0
+  #define PROTOBUF_USE_EXCEPTIONS 0
 #endif
 #endif
 
 #if PROTOBUF_USE_EXCEPTIONS
-
 #include <exception>
-
 #endif
 #if defined(__APPLE__)
 #include <TargetConditionals.h>  // for TARGET_OS_IPHONE
@@ -76,8 +74,8 @@
 namespace std {}
 
 namespace google {
-    namespace protobuf {
-        namespace internal {
+namespace protobuf {
+namespace internal {
 
 // Some of these constants are macros rather than const ints so that they can
 // be used in #if directives.
@@ -92,7 +90,7 @@ namespace google {
 // The minimum header version which works with the current version of
 // the library.  This constant should only be used by protoc's C++ code
 // generator.
-            static const int kMinHeaderVersionForLibrary = 3017000;
+static const int kMinHeaderVersionForLibrary = 3017000;
 
 // The minimum protoc version which works with the current version of the
 // headers.
@@ -100,17 +98,17 @@ namespace google {
 
 // The minimum header version which works with the current version of
 // protoc.  This constant should only be used in VerifyVersion().
-            static const int kMinHeaderVersionForProtoc = 3017000;
+static const int kMinHeaderVersionForProtoc = 3017000;
 
 // Verifies that the headers and libraries are compatible.  Use the macro
 // below to call this.
-            void PROTOBUF_EXPORT VerifyVersion(int headerVersion, int minLibraryVersion,
-                                               const char *filename);
+void PROTOBUF_EXPORT VerifyVersion(int headerVersion, int minLibraryVersion,
+                                   const char* filename);
 
 // Converts a numeric version number to a string.
-            std::string PROTOBUF_EXPORT VersionString(int version);
+std::string PROTOBUF_EXPORT VersionString(int version);
 
-        }  // namespace internal
+}  // namespace internal
 
 // Place this macro in your main() function (or somewhere before you attempt
 // to use the protobuf library) to verify that the version you link against
@@ -125,18 +123,18 @@ namespace google {
 // ===================================================================
 // from google3/util/utf8/public/unilib.h
 
-        namespace internal {
+namespace internal {
 
 // Checks if the buffer contains structurally-valid UTF-8.  Implemented in
 // structurally_valid.cc.
-            PROTOBUF_EXPORT bool IsStructurallyValidUTF8(const char *buf, int len);
+PROTOBUF_EXPORT bool IsStructurallyValidUTF8(const char* buf, int len);
 
-            inline bool IsStructurallyValidUTF8(StringPiece str) {
-                return IsStructurallyValidUTF8(str.data(), static_cast<int>(str.length()));
-            }
+inline bool IsStructurallyValidUTF8(StringPiece str) {
+  return IsStructurallyValidUTF8(str.data(), static_cast<int>(str.length()));
+}
 
 // Returns initial number of bytes of structurally valid UTF-8.
-            PROTOBUF_EXPORT int UTF8SpnStructurallyValid(StringPiece str);
+PROTOBUF_EXPORT int UTF8SpnStructurallyValid(StringPiece str);
 
 // Coerce UTF-8 byte string in src_str to be
 // a structurally-valid equal-length string by selectively
@@ -150,57 +148,52 @@ namespace google {
 //
 // Optimized for: all structurally valid and no byte copying is done.
 //
-            PROTOBUF_EXPORT char *UTF8CoerceToStructurallyValid(StringPiece str, char *dst,
-                                                                char replace_char);
+PROTOBUF_EXPORT char* UTF8CoerceToStructurallyValid(StringPiece str, char* dst,
+                                                    char replace_char);
 
-        }  // namespace internal
+}  // namespace internal
 
 // This lives in message_lite.h now, but we leave this here for any users that
 // #include common.h and not message_lite.h.
-        PROTOBUF_EXPORT void ShutdownProtobufLibrary();
+PROTOBUF_EXPORT void ShutdownProtobufLibrary();
 
-        namespace internal {
+namespace internal {
 
 // Strongly references the given variable such that the linker will be forced
 // to pull in this variable's translation unit.
-            template<typename T>
-            void StrongReference(const T &var) {
-                auto volatile unused = &var;
-                (void) &unused;  // Use address to avoid an extra load of "unused".
-            }
+template <typename T>
+void StrongReference(const T& var) {
+  auto volatile unused = &var;
+  (void)&unused;  // Use address to avoid an extra load of "unused".
+}
 
-        }  // namespace internal
+}  // namespace internal
 
 #if PROTOBUF_USE_EXCEPTIONS
+class FatalException : public std::exception {
+ public:
+  FatalException(const char* filename, int line, const std::string& message)
+      : filename_(filename), line_(line), message_(message) {}
+  virtual ~FatalException() throw();
 
-        class FatalException : public std::exception {
-        public:
-            FatalException(const char *filename, int line, const std::string &message)
-                    : filename_(filename), line_(line), message_(message) {}
+  virtual const char* what() const throw();
 
-            virtual ~FatalException() throw();
+  const char* filename() const { return filename_; }
+  int line() const { return line_; }
+  const std::string& message() const { return message_; }
 
-            virtual const char *what() const throw();
-
-            const char *filename() const { return filename_; }
-
-            int line() const { return line_; }
-
-            const std::string &message() const { return message_; }
-
-        private:
-            const char *filename_;
-            const int line_;
-            const std::string message_;
-        };
-
+ private:
+  const char* filename_;
+  const int line_;
+  const std::string message_;
+};
 #endif
 
 // This is at the end of the file instead of the beginning to work around a bug
 // in some versions of MSVC.
-        using std::string;
+using std::string;
 
-    }  // namespace protobuf
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

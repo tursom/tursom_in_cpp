@@ -61,8 +61,8 @@
 class CordByteSink;
 
 namespace google {
-    namespace protobuf {
-        namespace strings {
+namespace protobuf {
+namespace strings {
 
 // An abstract interface for an object that consumes a sequence of bytes. This
 // interface offers a way to append data as well as a Flush() function.
@@ -75,23 +75,22 @@ namespace google {
 //   sink->Append(my_data.data(), my_data.size());
 //   sink->Flush();
 //
-            class PROTOBUF_EXPORT ByteSink {
-            public:
-                ByteSink() {}
+class PROTOBUF_EXPORT ByteSink {
+ public:
+  ByteSink() {}
+  virtual ~ByteSink() {}
 
-                virtual ~ByteSink() {}
+  // Appends the "n" bytes starting at "bytes".
+  virtual void Append(const char* bytes, size_t n) = 0;
 
-                // Appends the "n" bytes starting at "bytes".
-                virtual void Append(const char *bytes, size_t n) = 0;
+  // Flushes internal buffers. The default implementation does nothing. ByteSink
+  // subclasses may use internal buffers that require calling Flush() at the end
+  // of the stream.
+  virtual void Flush();
 
-                // Flushes internal buffers. The default implementation does nothing. ByteSink
-                // subclasses may use internal buffers that require calling Flush() at the end
-                // of the stream.
-                virtual void Flush();
-
-            private:
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSink);
-            };
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSink);
+};
 
 // An abstract interface for an object that produces a fixed-size sequence of
 // bytes.
@@ -105,47 +104,46 @@ namespace google {
 //     source->Skip(data.length());
 //   }
 //
-            class PROTOBUF_EXPORT ByteSource {
-            public:
-                ByteSource() {}
+class PROTOBUF_EXPORT ByteSource {
+ public:
+  ByteSource() {}
+  virtual ~ByteSource() {}
 
-                virtual ~ByteSource() {}
+  // Returns the number of bytes left to read from the source. Available()
+  // should decrease by N each time Skip(N) is called. Available() may not
+  // increase. Available() returning 0 indicates that the ByteSource is
+  // exhausted.
+  //
+  // Note: Size() may have been a more appropriate name as it's more
+  //       indicative of the fixed-size nature of a ByteSource.
+  virtual size_t Available() const = 0;
 
-                // Returns the number of bytes left to read from the source. Available()
-                // should decrease by N each time Skip(N) is called. Available() may not
-                // increase. Available() returning 0 indicates that the ByteSource is
-                // exhausted.
-                //
-                // Note: Size() may have been a more appropriate name as it's more
-                //       indicative of the fixed-size nature of a ByteSource.
-                virtual size_t Available() const = 0;
+  // Returns a StringPiece of the next contiguous region of the source. Does not
+  // reposition the source. The returned region is empty iff Available() == 0.
+  //
+  // The returned region is valid until the next call to Skip() or until this
+  // object is destroyed, whichever occurs first.
+  //
+  // The length of the returned StringPiece will be <= Available().
+  virtual StringPiece Peek() = 0;
 
-                // Returns a StringPiece of the next contiguous region of the source. Does not
-                // reposition the source. The returned region is empty iff Available() == 0.
-                //
-                // The returned region is valid until the next call to Skip() or until this
-                // object is destroyed, whichever occurs first.
-                //
-                // The length of the returned StringPiece will be <= Available().
-                virtual StringPiece Peek() = 0;
+  // Skips the next n bytes. Invalidates any StringPiece returned by a previous
+  // call to Peek().
+  //
+  // REQUIRES: Available() >= n
+  virtual void Skip(size_t n) = 0;
 
-                // Skips the next n bytes. Invalidates any StringPiece returned by a previous
-                // call to Peek().
-                //
-                // REQUIRES: Available() >= n
-                virtual void Skip(size_t n) = 0;
+  // Writes the next n bytes in this ByteSource to the given ByteSink, and
+  // advances this ByteSource past the copied bytes. The default implementation
+  // of this method just copies the bytes normally, but subclasses might
+  // override CopyTo to optimize certain cases.
+  //
+  // REQUIRES: Available() >= n
+  virtual void CopyTo(ByteSink* sink, size_t n);
 
-                // Writes the next n bytes in this ByteSource to the given ByteSink, and
-                // advances this ByteSource past the copied bytes. The default implementation
-                // of this method just copies the bytes normally, but subclasses might
-                // override CopyTo to optimize certain cases.
-                //
-                // REQUIRES: Available() >= n
-                virtual void CopyTo(ByteSink *sink, size_t n);
-
-            private:
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSource);
-            };
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ByteSource);
+};
 
 //
 // Some commonly used implementations of ByteSink
@@ -162,22 +160,21 @@ namespace google {
 //   sink.Append("hi", 2);    // OK
 //   sink.Append(data, 100);  // WOOPS! Overflows buf[10].
 //
-            class PROTOBUF_EXPORT UncheckedArrayByteSink : public ByteSink {
-            public:
-                explicit UncheckedArrayByteSink(char *dest) : dest_(dest) {}
+class PROTOBUF_EXPORT UncheckedArrayByteSink : public ByteSink {
+ public:
+  explicit UncheckedArrayByteSink(char* dest) : dest_(dest) {}
+  virtual void Append(const char* data, size_t n) override;
 
-                virtual void Append(const char *data, size_t n) override;
+  // Returns the current output pointer so that a caller can see how many bytes
+  // were produced.
+  //
+  // Note: this method is not part of the ByteSink interface.
+  char* CurrentDestination() const { return dest_; }
 
-                // Returns the current output pointer so that a caller can see how many bytes
-                // were produced.
-                //
-                // Note: this method is not part of the ByteSink interface.
-                char *CurrentDestination() const { return dest_; }
-
-            private:
-                char *dest_;
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(UncheckedArrayByteSink);
-            };
+ private:
+  char* dest_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(UncheckedArrayByteSink);
+};
 
 // Implementation of ByteSink that writes to a sized byte array. This sink will
 // not write more than "capacity" bytes to outbuf. Once "capacity" bytes are
@@ -191,26 +188,25 @@ namespace google {
 //   sink.Append("hi", 2);    // OK
 //   sink.Append(data, 100);  // Will only write 8 more bytes
 //
-            class PROTOBUF_EXPORT CheckedArrayByteSink : public ByteSink {
-            public:
-                CheckedArrayByteSink(char *outbuf, size_t capacity);
+class PROTOBUF_EXPORT CheckedArrayByteSink : public ByteSink {
+ public:
+  CheckedArrayByteSink(char* outbuf, size_t capacity);
+  virtual void Append(const char* bytes, size_t n) override;
 
-                virtual void Append(const char *bytes, size_t n) override;
+  // Returns the number of bytes actually written to the sink.
+  size_t NumberOfBytesWritten() const { return size_; }
 
-                // Returns the number of bytes actually written to the sink.
-                size_t NumberOfBytesWritten() const { return size_; }
+  // Returns true if any bytes were discarded, i.e., if there was an
+  // attempt to write more than 'capacity' bytes.
+  bool Overflowed() const { return overflowed_; }
 
-                // Returns true if any bytes were discarded, i.e., if there was an
-                // attempt to write more than 'capacity' bytes.
-                bool Overflowed() const { return overflowed_; }
-
-            private:
-                char *outbuf_;
-                const size_t capacity_;
-                size_t size_;
-                bool overflowed_;
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CheckedArrayByteSink);
-            };
+ private:
+  char* outbuf_;
+  const size_t capacity_;
+  size_t size_;
+  bool overflowed_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(CheckedArrayByteSink);
+};
 
 // Implementation of ByteSink that allocates an internal buffer (a char array)
 // and expands it as needed to accommodate appended data (similar to a string),
@@ -228,28 +224,25 @@ namespace google {
 //   const char* buf = sink.GetBuffer();  // Ownership transferred
 //   delete[] buf;
 //
-            class PROTOBUF_EXPORT GrowingArrayByteSink : public strings::ByteSink {
-            public:
-                explicit GrowingArrayByteSink(size_t estimated_size);
+class PROTOBUF_EXPORT GrowingArrayByteSink : public strings::ByteSink {
+ public:
+  explicit GrowingArrayByteSink(size_t estimated_size);
+  virtual ~GrowingArrayByteSink();
+  virtual void Append(const char* bytes, size_t n) override;
 
-                virtual ~GrowingArrayByteSink();
+  // Returns the allocated buffer, and sets nbytes to its size. The caller takes
+  // ownership of the buffer and must delete it with delete[].
+  char* GetBuffer(size_t* nbytes);
 
-                virtual void Append(const char *bytes, size_t n) override;
+ private:
+  void Expand(size_t amount);
+  void ShrinkToFit();
 
-                // Returns the allocated buffer, and sets nbytes to its size. The caller takes
-                // ownership of the buffer and must delete it with delete[].
-                char *GetBuffer(size_t *nbytes);
-
-            private:
-                void Expand(size_t amount);
-
-                void ShrinkToFit();
-
-                size_t capacity_;
-                char *buf_;
-                size_t size_;
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GrowingArrayByteSink);
-            };
+  size_t capacity_;
+  char* buf_;
+  size_t size_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(GrowingArrayByteSink);
+};
 
 // Implementation of ByteSink that appends to the given string.
 // Existing contents of "dest" are not modified; new data is appended.
@@ -261,16 +254,15 @@ namespace google {
 //   sink.Append("World", 5);
 //   assert(dest == "Hello World");
 //
-            class PROTOBUF_EXPORT StringByteSink : public ByteSink {
-            public:
-                explicit StringByteSink(std::string *dest) : dest_(dest) {}
+class PROTOBUF_EXPORT StringByteSink : public ByteSink {
+ public:
+  explicit StringByteSink(std::string* dest) : dest_(dest) {}
+  virtual void Append(const char* data, size_t n) override;
 
-                virtual void Append(const char *data, size_t n) override;
-
-            private:
-                std::string *dest_;
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringByteSink);
-            };
+ private:
+  std::string* dest_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringByteSink);
+};
 
 // Implementation of ByteSink that discards all data.
 //
@@ -279,15 +271,14 @@ namespace google {
 //   NullByteSink sink;
 //   sink.Append(data, data.size());  // All data ignored.
 //
-            class PROTOBUF_EXPORT NullByteSink : public ByteSink {
-            public:
-                NullByteSink() {}
+class PROTOBUF_EXPORT NullByteSink : public ByteSink {
+ public:
+  NullByteSink() {}
+  void Append(const char* /*data*/, size_t /*n*/) override {}
 
-                void Append(const char * /*data*/, size_t /*n*/) override {}
-
-            private:
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(NullByteSink);
-            };
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(NullByteSink);
+};
 
 //
 // Some commonly used implementations of ByteSource
@@ -302,20 +293,18 @@ namespace google {
 //   assert(source.Available() == 5);
 //   assert(source.Peek() == "Hello");
 //
-            class PROTOBUF_EXPORT ArrayByteSource : public ByteSource {
-            public:
-                explicit ArrayByteSource(StringPiece s) : input_(s) {}
+class PROTOBUF_EXPORT ArrayByteSource : public ByteSource {
+ public:
+  explicit ArrayByteSource(StringPiece s) : input_(s) {}
 
-                virtual size_t Available() const override;
+  virtual size_t Available() const override;
+  virtual StringPiece Peek() override;
+  virtual void Skip(size_t n) override;
 
-                virtual StringPiece Peek() override;
-
-                virtual void Skip(size_t n) override;
-
-            private:
-                StringPiece input_;
-                GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ArrayByteSource);
-            };
+ private:
+  StringPiece   input_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ArrayByteSource);
+};
 
 // Implementation of ByteSource that wraps another ByteSource, limiting the
 // number of bytes returned.
@@ -335,28 +324,26 @@ namespace google {
 //   assert(limit.Available() == 5);
 //   assert(limit.Peek() == "Hello");
 //
-            class PROTOBUF_EXPORT LimitByteSource : public ByteSource {
-            public:
-                // Returns at most "limit" bytes from "source".
-                LimitByteSource(ByteSource *source, size_t limit);
+class PROTOBUF_EXPORT LimitByteSource : public ByteSource {
+ public:
+  // Returns at most "limit" bytes from "source".
+  LimitByteSource(ByteSource* source, size_t limit);
 
-                virtual size_t Available() const override;
+  virtual size_t Available() const override;
+  virtual StringPiece Peek() override;
+  virtual void Skip(size_t n) override;
 
-                virtual StringPiece Peek() override;
+  // We override CopyTo so that we can forward to the underlying source, in
+  // case it has an efficient implementation of CopyTo.
+  virtual void CopyTo(ByteSink* sink, size_t n) override;
 
-                virtual void Skip(size_t n) override;
+ private:
+  ByteSource* source_;
+  size_t limit_;
+};
 
-                // We override CopyTo so that we can forward to the underlying source, in
-                // case it has an efficient implementation of CopyTo.
-                virtual void CopyTo(ByteSink *sink, size_t n) override;
-
-            private:
-                ByteSource *source_;
-                size_t limit_;
-            };
-
-        }  // namespace strings
-    }  // namespace protobuf
+}  // namespace strings
+}  // namespace protobuf
 }  // namespace google
 
 #include <google/protobuf/port_undef.inc>

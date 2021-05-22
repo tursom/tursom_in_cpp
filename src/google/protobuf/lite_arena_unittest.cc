@@ -33,67 +33,56 @@
 #include <gtest/gtest.h>
 
 namespace google {
-    namespace protobuf {
-        namespace {
+namespace protobuf {
+namespace {
 
-            class LiteArenaTest : public testing::Test {
-            protected:
-                LiteArenaTest() {
-                    ArenaOptions options;
-                    options.start_block_size = 128 * 1024;
-                    options.max_block_size = 128 * 1024;
-                    arena_.reset(new Arena(options));
-                    // Trigger the allocation of the first arena block, so that further use of
-                    // the arena will not require any heap allocations.
-                    Arena::CreateArray<char>(arena_.get(), 1);
-                }
+class LiteArenaTest : public testing::Test {
+ protected:
+  LiteArenaTest() {
+    ArenaOptions options;
+    options.start_block_size = 128 * 1024;
+    options.max_block_size = 128 * 1024;
+    arena_.reset(new Arena(options));
+    // Trigger the allocation of the first arena block, so that further use of
+    // the arena will not require any heap allocations.
+    Arena::CreateArray<char>(arena_.get(), 1);
+  }
 
-                std::unique_ptr<Arena> arena_;
-            };
+  std::unique_ptr<Arena> arena_;
+};
 
-            TEST_F(LiteArenaTest, MapNoHeapAllocation
-            ) {
-            std::string data;
-            data.reserve(128 * 1024); {
-            // TODO(teboring): Enable no heap check when ArenaStringPtr is used in
-            // Map.
-            // internal::NoHeapChecker no_heap;
+TEST_F(LiteArenaTest, MapNoHeapAllocation) {
+  std::string data;
+  data.reserve(128 * 1024);
 
-            protobuf_unittest::TestArenaMapLite *from =
-                    Arena::CreateMessage<protobuf_unittest::TestArenaMapLite>(arena_.get());
-            MapLiteTestUtil::SetArenaMapFields(from);
-            from->
-            SerializeToString(&data);
+  {
+    // TODO(teboring): Enable no heap check when ArenaStringPtr is used in
+    // Map.
+    // internal::NoHeapChecker no_heap;
 
-            protobuf_unittest::TestArenaMapLite *to =
-                    Arena::CreateMessage<protobuf_unittest::TestArenaMapLite>(arena_.get());
-            to->
-            ParseFromString(data);
-            MapLiteTestUtil::ExpectArenaMapFieldsSet(*to);
-        }
-    }
+    protobuf_unittest::TestArenaMapLite* from =
+        Arena::CreateMessage<protobuf_unittest::TestArenaMapLite>(arena_.get());
+    MapLiteTestUtil::SetArenaMapFields(from);
+    from->SerializeToString(&data);
 
-    TEST_F(LiteArenaTest, UnknownFieldMemLeak
-    ) {
-    protobuf_unittest::ForeignMessageArenaLite *message =
-            Arena::CreateMessage<protobuf_unittest::ForeignMessageArenaLite>(
-                    arena_.get());
-    std::string data = "\012\000";
-    int original_capacity = data.capacity();
-    while (data.
-
-    capacity()
-
-    <= original_capacity) {
-    data.append("a");
+    protobuf_unittest::TestArenaMapLite* to =
+        Arena::CreateMessage<protobuf_unittest::TestArenaMapLite>(arena_.get());
+    to->ParseFromString(data);
+    MapLiteTestUtil::ExpectArenaMapFieldsSet(*to);
+  }
 }
-data[1] = data.
 
-size()
-
-- 2;
-message->
-ParseFromString(data);
+TEST_F(LiteArenaTest, UnknownFieldMemLeak) {
+  protobuf_unittest::ForeignMessageArenaLite* message =
+      Arena::CreateMessage<protobuf_unittest::ForeignMessageArenaLite>(
+          arena_.get());
+  std::string data = "\012\000";
+  int original_capacity = data.capacity();
+  while (data.capacity() <= original_capacity) {
+    data.append("a");
+  }
+  data[1] = data.size() - 2;
+  message->ParseFromString(data);
 }
 
 }  // namespace

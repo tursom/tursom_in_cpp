@@ -40,113 +40,83 @@
 #include <google/protobuf/compiler/cpp/cpp_field.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace cpp {
+namespace protobuf {
+namespace compiler {
+namespace cpp {
 
-                class StringFieldGenerator : public FieldGenerator {
-                public:
-                    StringFieldGenerator(const FieldDescriptor *descriptor,
-                                         const Options &options);
+class StringFieldGenerator : public FieldGenerator {
+ public:
+  StringFieldGenerator(const FieldDescriptor* descriptor,
+                       const Options& options);
+  ~StringFieldGenerator();
 
-                    ~StringFieldGenerator();
+  // implements FieldGenerator ---------------------------------------
+  void GeneratePrivateMembers(io::Printer* printer) const;
+  void GenerateStaticMembers(io::Printer* printer) const;
+  void GenerateAccessorDeclarations(io::Printer* printer) const;
+  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
+  void GenerateNonInlineAccessorDefinitions(io::Printer* printer) const;
+  void GenerateClearingCode(io::Printer* printer) const;
+  void GenerateMessageClearingCode(io::Printer* printer) const;
+  void GenerateMergingCode(io::Printer* printer) const;
+  void GenerateSwappingCode(io::Printer* printer) const;
+  void GenerateConstructorCode(io::Printer* printer) const;
+  void GenerateCopyConstructorCode(io::Printer* printer) const;
+  void GenerateDestructorCode(io::Printer* printer) const;
+  void GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const;
+  void GenerateByteSize(io::Printer* printer) const;
+  void GenerateConstinitInitializer(io::Printer* printer) const;
 
-                    // implements FieldGenerator ---------------------------------------
-                    void GeneratePrivateMembers(io::Printer *printer) const;
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringFieldGenerator);
+};
 
-                    void GenerateStaticMembers(io::Printer *printer) const;
+class StringOneofFieldGenerator : public StringFieldGenerator {
+ public:
+  StringOneofFieldGenerator(const FieldDescriptor* descriptor,
+                            const Options& options);
+  ~StringOneofFieldGenerator();
 
-                    void GenerateAccessorDeclarations(io::Printer *printer) const;
+  // implements FieldGenerator ---------------------------------------
+  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
+  void GenerateClearingCode(io::Printer* printer) const;
 
-                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
+  // StringFieldGenerator, from which we inherit, overrides this so we need to
+  // override it as well.
+  void GenerateMessageClearingCode(io::Printer* printer) const;
+  void GenerateSwappingCode(io::Printer* printer) const;
+  void GenerateConstructorCode(io::Printer* printer) const;
 
-                    void GenerateNonInlineAccessorDefinitions(io::Printer *printer) const;
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringOneofFieldGenerator);
+};
 
-                    void GenerateClearingCode(io::Printer *printer) const;
+class RepeatedStringFieldGenerator : public FieldGenerator {
+ public:
+  RepeatedStringFieldGenerator(const FieldDescriptor* descriptor,
+                               const Options& options);
+  ~RepeatedStringFieldGenerator();
 
-                    void GenerateMessageClearingCode(io::Printer *printer) const;
+  // implements FieldGenerator ---------------------------------------
+  void GeneratePrivateMembers(io::Printer* printer) const;
+  void GenerateAccessorDeclarations(io::Printer* printer) const;
+  void GenerateInlineAccessorDefinitions(io::Printer* printer) const;
+  void GenerateClearingCode(io::Printer* printer) const;
+  void GenerateMergingCode(io::Printer* printer) const;
+  void GenerateSwappingCode(io::Printer* printer) const;
+  void GenerateConstructorCode(io::Printer* printer) const;
+  void GenerateCopyConstructorCode(io::Printer* printer) const;
+  void GenerateSerializeWithCachedSizesToArray(io::Printer* printer) const;
+  void GenerateByteSize(io::Printer* printer) const;
+  void GenerateConstinitInitializer(io::Printer* printer) const;
 
-                    void GenerateMergingCode(io::Printer *printer) const;
+ private:
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedStringFieldGenerator);
+};
 
-                    void GenerateSwappingCode(io::Printer *printer) const;
-
-                    void GenerateConstructorCode(io::Printer *printer) const;
-
-                    void GenerateCopyConstructorCode(io::Printer *printer) const;
-
-                    void GenerateDestructorCode(io::Printer *printer) const;
-
-                    void GenerateSerializeWithCachedSizesToArray(io::Printer *printer) const;
-
-                    void GenerateByteSize(io::Printer *printer) const;
-
-                    void GenerateConstinitInitializer(io::Printer *printer) const;
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringFieldGenerator);
-                };
-
-                class StringOneofFieldGenerator : public StringFieldGenerator {
-                public:
-                    StringOneofFieldGenerator(const FieldDescriptor *descriptor,
-                                              const Options &options);
-
-                    ~StringOneofFieldGenerator();
-
-                    // implements FieldGenerator ---------------------------------------
-                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
-
-                    void GenerateClearingCode(io::Printer *printer) const;
-
-                    // StringFieldGenerator, from which we inherit, overrides this so we need to
-                    // override it as well.
-                    void GenerateMessageClearingCode(io::Printer *printer) const;
-
-                    void GenerateSwappingCode(io::Printer *printer) const;
-
-                    void GenerateConstructorCode(io::Printer *printer) const;
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(StringOneofFieldGenerator);
-                };
-
-                class RepeatedStringFieldGenerator : public FieldGenerator {
-                public:
-                    RepeatedStringFieldGenerator(const FieldDescriptor *descriptor,
-                                                 const Options &options);
-
-                    ~RepeatedStringFieldGenerator();
-
-                    // implements FieldGenerator ---------------------------------------
-                    void GeneratePrivateMembers(io::Printer *printer) const;
-
-                    void GenerateAccessorDeclarations(io::Printer *printer) const;
-
-                    void GenerateInlineAccessorDefinitions(io::Printer *printer) const;
-
-                    void GenerateClearingCode(io::Printer *printer) const;
-
-                    void GenerateMergingCode(io::Printer *printer) const;
-
-                    void GenerateSwappingCode(io::Printer *printer) const;
-
-                    void GenerateConstructorCode(io::Printer *printer) const;
-
-                    void GenerateCopyConstructorCode(io::Printer *printer) const;
-
-                    void GenerateSerializeWithCachedSizesToArray(io::Printer *printer) const;
-
-                    void GenerateByteSize(io::Printer *printer) const;
-
-                    void GenerateConstinitInitializer(io::Printer *printer) const;
-
-                private:
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RepeatedStringFieldGenerator);
-                };
-
-            }  // namespace cpp
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace cpp
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_STRING_FIELD_H__

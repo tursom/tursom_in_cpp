@@ -42,51 +42,50 @@
 #include <google/protobuf/compiler/cpp/cpp_options.h>
 
 namespace google {
-    namespace protobuf {
-        class FieldDescriptor;  // descriptor.h
-        namespace io {
-            class Printer;  // printer.h
-        }
-    }  // namespace protobuf
+namespace protobuf {
+class FieldDescriptor;  // descriptor.h
+namespace io {
+class Printer;  // printer.h
+}
+}  // namespace protobuf
 }  // namespace google
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace cpp {
+namespace protobuf {
+namespace compiler {
+namespace cpp {
 
 // Generates code for an extension, which may be within the scope of some
 // message or may be at file scope.  This is much simpler than FieldGenerator
 // since extensions are just simple identifiers with interesting types.
-                class ExtensionGenerator {
-                public:
-                    // See generator.cc for the meaning of dllexport_decl.
-                    explicit ExtensionGenerator(const FieldDescriptor *descriptor,
-                                                const Options &options);
+class ExtensionGenerator {
+ public:
+  // See generator.cc for the meaning of dllexport_decl.
+  explicit ExtensionGenerator(const FieldDescriptor* descriptor,
+                              const Options& options);
+  ~ExtensionGenerator();
 
-                    ~ExtensionGenerator();
+  // Header stuff.
+  void GenerateDeclaration(io::Printer* printer) const;
 
-                    // Header stuff.
-                    void GenerateDeclaration(io::Printer *printer) const;
+  // Source file stuff.
+  void GenerateDefinition(io::Printer* printer);
 
-                    // Source file stuff.
-                    void GenerateDefinition(io::Printer *printer);
+  bool IsScoped() const;
 
-                    bool IsScoped() const;
+ private:
+  const FieldDescriptor* descriptor_;
+  std::string type_traits_;
+  Options options_;
 
-                private:
-                    const FieldDescriptor *descriptor_;
-                    std::string type_traits_;
-                    Options options_;
+  std::map<std::string, std::string> variables_;
 
-                    std::map<std::string, std::string> variables_;
+  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
+};
 
-                    GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ExtensionGenerator);
-                };
-
-            }  // namespace cpp
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace cpp
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_CPP_MESSAGE_H__

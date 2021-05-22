@@ -36,57 +36,52 @@
 #include <google/protobuf/compiler/objectivec/objectivec_field.h>
 
 namespace google {
-    namespace protobuf {
-        namespace compiler {
-            namespace objectivec {
+namespace protobuf {
+namespace compiler {
+namespace objectivec {
 
-                class MessageFieldGenerator : public ObjCObjFieldGenerator {
-                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
-                                                                const Options &options);
+class MessageFieldGenerator : public ObjCObjFieldGenerator {
+  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
+                                              const Options& options);
 
-                protected:
-                    MessageFieldGenerator(const FieldDescriptor *descriptor,
-                                          const Options &options);
+ protected:
+  MessageFieldGenerator(const FieldDescriptor* descriptor,
+                        const Options& options);
 
-                    MessageFieldGenerator(const MessageFieldGenerator &) = delete;
+  MessageFieldGenerator(const MessageFieldGenerator&) = delete;
+  MessageFieldGenerator& operator=(const MessageFieldGenerator&) = delete;
 
-                    MessageFieldGenerator &operator=(const MessageFieldGenerator &) = delete;
+  virtual ~MessageFieldGenerator();
 
-                    virtual ~MessageFieldGenerator();
+ public:
+  virtual void DetermineForwardDeclarations(
+      std::set<std::string>* fwd_decls) const;
+  virtual void DetermineObjectiveCClassDefinitions(
+      std::set<std::string>* fwd_decls) const;
+};
 
-                public:
-                    virtual void DetermineForwardDeclarations(
-                            std::set<std::string> *fwd_decls) const;
+class RepeatedMessageFieldGenerator : public RepeatedFieldGenerator {
+  friend FieldGenerator* FieldGenerator::Make(const FieldDescriptor* field,
+                                              const Options& options);
 
-                    virtual void DetermineObjectiveCClassDefinitions(
-                            std::set<std::string> *fwd_decls) const;
-                };
+ protected:
+  RepeatedMessageFieldGenerator(const FieldDescriptor* descriptor,
+                                const Options& options);
+  virtual ~RepeatedMessageFieldGenerator();
 
-                class RepeatedMessageFieldGenerator : public RepeatedFieldGenerator {
-                    friend FieldGenerator *FieldGenerator::Make(const FieldDescriptor *field,
-                                                                const Options &options);
+  RepeatedMessageFieldGenerator(const RepeatedMessageFieldGenerator&) = delete;
+  RepeatedMessageFieldGenerator operator=(const RepeatedMessageFieldGenerator&) = delete;
 
-                protected:
-                    RepeatedMessageFieldGenerator(const FieldDescriptor *descriptor,
-                                                  const Options &options);
+ public:
+  virtual void DetermineForwardDeclarations(
+      std::set<std::string>* fwd_decls) const;
+  virtual void DetermineObjectiveCClassDefinitions(
+      std::set<std::string>* fwd_decls) const;
+};
 
-                    virtual ~RepeatedMessageFieldGenerator();
-
-                    RepeatedMessageFieldGenerator(const RepeatedMessageFieldGenerator &) = delete;
-
-                    RepeatedMessageFieldGenerator operator=(const RepeatedMessageFieldGenerator &) = delete;
-
-                public:
-                    virtual void DetermineForwardDeclarations(
-                            std::set<std::string> *fwd_decls) const;
-
-                    virtual void DetermineObjectiveCClassDefinitions(
-                            std::set<std::string> *fwd_decls) const;
-                };
-
-            }  // namespace objectivec
-        }  // namespace compiler
-    }  // namespace protobuf
+}  // namespace objectivec
+}  // namespace compiler
+}  // namespace protobuf
 }  // namespace google
 
 #endif  // GOOGLE_PROTOBUF_COMPILER_OBJECTIVEC_MESSAGE_FIELD_H__
