@@ -1,6 +1,10 @@
 #include <iostream>
+#include <boost/lambda/lambda.hpp>
 
 #include "proto/TursomMsg.pb.h"
+#include "utils/ArrayList.hpp"
+
+using cn::tursom::im::protobuf::ImMsg;
 
 static const char HEX_HIGHER[] = "0123456789ABCDEF";
 static const char HEX_LOWER[] = "0123456789abcdef";
@@ -37,6 +41,8 @@ std::string toHexString(const char *str, size_t size, bool higher = true) {
 }
 
 int main() {
+    mutex.native_handle();
+    std::vector<int> vec;
     std::atomic_int p;
     int a = 1;
     int b = 2;
@@ -45,7 +51,7 @@ int main() {
     str.resize(10);
     str.append("1");
     std::cout << str.size() << str.max_size() << str << std::endl;
-    cn::tursom::im::protobuf::ImMsg msg;
+    ImMsg msg;
     msg.set_msgid("test msg id");
 
     auto &sendmsgrequest = *msg.mutable_sendmsgrequest();
@@ -55,7 +61,7 @@ int main() {
     std::cout << msg.DebugString() << std::endl;
     auto serialize = msg.SerializeAsString();
     std::cout << serialize.size() << " " << toHexString(serialize) << std::endl;
-    cn::tursom::im::protobuf::ImMsg parse;
+    ImMsg parse;
     parse.ParseFromString(serialize);
     std::cout << parse.DebugString() << std::endl;
     return 0;
