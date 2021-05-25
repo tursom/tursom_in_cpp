@@ -40,8 +40,13 @@ std::string toHexString(const char *str, size_t size, bool higher = true) {
     return out;
 }
 
+thread_local int t;
+
 int main() {
-    mutex.native_handle();
+    std::atomic_int ThreadLocalIdGenerator;
+    std::cout << ThreadLocalIdGenerator.fetch_add(1) << std::endl;
+    return 0;
+
     std::vector<int> vec;
     std::atomic_int p;
     int a = 1;
