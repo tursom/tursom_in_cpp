@@ -1,73 +1,23 @@
-#include <iostream>
-#include <boost/lambda/lambda.hpp>
-
+#include "utils/Thread.h"
+#include "utils/CoroutineContext.h"
 #include "proto/TursomMsg.pb.h"
-#include "utils/ArrayList.hpp"
+
+#include <cstdlib>
+#include <fmt/core.h>
+#include <fmt/format.h>
 
 using cn::tursom::im::protobuf::ImMsg;
 
-static const char HEX_HIGHER[] = "0123456789ABCDEF";
-static const char HEX_LOWER[] = "0123456789abcdef";
-
-std::string toHexString(const std::string &str, bool higher = true) {
-    const char *HEX = higher ? HEX_HIGHER : HEX_LOWER;
-    std::string out;
-    char s[3];
-    s[2] = 0;
-
-    for (const unsigned char item : str) {
-        s[0] = HEX[(item >> 4) & 0xf];
-        s[1] = HEX[item & 0xf];
-        out.append(s);
-    }
-
-    return std::move(out);
-}
-
-std::string toHexString(const char *str, size_t size, bool higher = true) {
-    const char *HEX = higher ? HEX_HIGHER : HEX_LOWER;
-    std::string out;
-    char s[3];
-    s[2] = 0;
-
-    for (int i = 0; i < size; ++i) {
-        unsigned char item = str[i];
-        s[0] = HEX[(item >> 4) & 0xf];
-        s[1] = HEX[item & 0xf];
-        out.append(s);
-    }
-
-    return out;
-}
-
-thread_local int t;
-
 int main() {
-    std::atomic_int ThreadLocalIdGenerator;
-    std::cout << ThreadLocalIdGenerator.fetch_add(1) << std::endl;
-    return 0;
-
-    std::vector<int> vec;
-    std::atomic_int p;
-    int a = 1;
-    int b = 2;
-    p.compare_exchange_strong(a, b);
-    std::string str;
-    str.resize(10);
-    str.append("1");
-    std::cout << str.size() << str.max_size() << str << std::endl;
-    ImMsg msg;
-    msg.set_msgid("test msg id");
-
-    auto &sendmsgrequest = *msg.mutable_sendmsgrequest();
-    sendmsgrequest.set_receiver("test sender");
-    sendmsgrequest.set_reqid("test request id");
-    sendmsgrequest.mutable_content()->set_msg("test message");
-    std::cout << msg.DebugString() << std::endl;
-    auto serialize = msg.SerializeAsString();
-    std::cout << serialize.size() << " " << toHexString(serialize) << std::endl;
-    ImMsg parse;
-    parse.ParseFromString(serialize);
-    std::cout << parse.DebugString() << std::endl;
-    return 0;
+    std::cout << std::this_thread::get_id() << std::endl;
+    //auto task = count_lines("main.cpp");
+    for (int i = 0; i < 100; ++i) {
+        cn::tursom::utils::GlobalContext.launch([]() -> boost::asio::awaitable<int> {
+            fmt::print("running in thread {}\n", cn::tursom::utils::Thread::currentThread().getName());
+            co_return 0;
+        }());
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(10));
+    fmt::print("process exited\n");
+    auto id = std::this_thread::get_id();
 }

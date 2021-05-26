@@ -1,6 +1,7 @@
 syntax = "proto3";
 
-option optimize_for = SPEED;
+//option optimize_for = SPEED;
+option optimize_for = LITE_RUNTIME;
 
 package cn.tursom.im.protobuf;
 option java_outer_classname = "TursomMsg";
