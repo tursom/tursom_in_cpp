@@ -21,8 +21,11 @@ namespace cn::tursom::utils {
 
         void close();
 
-        template<typename T, typename AwaitableExecutor>
+        template<typename T, typename AwaitableExecutor=boost::asio::any_io_executor>
         void launch(boost::asio::awaitable<T, AwaitableExecutor> a);
+
+        template<typename F>
+        void launch(F f);
 
     private:
         static std::atomic_int CoroutineContextId;
@@ -33,6 +36,11 @@ namespace cn::tursom::utils {
     template<typename T, typename AwaitableExecutor>
     void CoroutineContext::launch(boost::asio::awaitable<T, AwaitableExecutor> a) {
         boost::asio::co_spawn(ioc, std::move(a), boost::asio::detached);
+    }
+
+    template<typename F>
+    void CoroutineContext::launch(F f) {
+        launch(f());
     }
 
     extern cn::tursom::utils::CoroutineContext GlobalContext;
