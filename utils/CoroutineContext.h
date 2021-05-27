@@ -27,6 +27,10 @@ namespace cn::tursom::utils {
         template<typename F>
         void launch(F f);
 
+        boost::asio::io_context &getIoc();
+
+        bool isClosed() const;
+
     private:
         static std::atomic_int CoroutineContextId;
         boost::asio::io_context ioc;
@@ -43,7 +47,8 @@ namespace cn::tursom::utils {
         launch(f());
     }
 
-    extern cn::tursom::utils::CoroutineContext GlobalContext;
+
+    extern cn::tursom::utils::CoroutineContext &getGlobalContext();
 }
 
 

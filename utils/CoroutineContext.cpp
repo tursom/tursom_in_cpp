@@ -7,11 +7,18 @@
 #include <thread>
 #include <fmt/core.h>
 #include "Thread.h"
+#include "lazy.hpp"
 
 namespace cn::tursom::utils {
     std::atomic_int CoroutineContext::CoroutineContextId;
 
-    CoroutineContext GlobalContext(std::thread::hardware_concurrency() + 1);
+    auto GlobalContext = lazy<CoroutineContext>([]() {
+        return std::make_unique<CoroutineContext>(std::thread::hardware_concurrency() + 1);
+    });
+
+    CoroutineContext &getGlobalContext() {
+        return GlobalContext;
+    }
 
     CoroutineContext::CoroutineContext() : CoroutineContext(1) {}
 
@@ -44,5 +51,13 @@ namespace cn::tursom::utils {
     void CoroutineContext::close() {
         closed = true;
         ioc.stop();
+    }
+
+    boost::asio::io_context &CoroutineContext::getIoc() {
+        return ioc;
+    }
+
+    bool CoroutineContext::isClosed() const {
+        return closed;
     }
 }
